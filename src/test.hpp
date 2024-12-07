@@ -8,6 +8,611 @@
 using namespace std;
 
 
+
+void check_area(){
+    //2 5 2 6
+    //1 3 4 5 8
+    //2 3 6 7 1
+
+    int rows,columns,edge_len,ele_num;
+    cin >> rows >> columns >> edge_len >> ele_num;
+    cin.ignore();
+    int n2 = rows;
+    std::vector<std::vector<int>> graph(rows,std::vector<int>(columns));
+    std::vector<std::vector<int>> dp(rows,std::vector<int>(columns));
+    int r = 0;
+    while (n2 > 0){
+        std::string line;
+        getline(cin,line);
+        stringstream ss(line);
+        int val;
+        int c = 0;
+        while (ss >> val){
+            graph[r][c] = val;
+            c++;
+        }
+        r++;
+        n2--;
+    }
+    dp[0][0] = graph[0][0];
+    for(int r = 1;r < rows;r++){
+        dp[r][0] =  dp[r - 1][0] + graph[r][0];
+    }
+    for(int c = 1;c < columns;c++){
+        dp[0][c] = dp[0][c - 1] + graph[0][c];
+    }
+    for(int r = 1;r < rows;r++){
+        for(int c = 1;c < columns;c++){
+            dp[r][c] = graph[r][c] + dp[r-1][c] + dp[r][c - 1] - dp[r-1][c - 1];
+        }
+    }
+    int res = 0;
+    for(int r = edge_len - 1;r < rows;r++){
+        for(int c = edge_len - 1;c < columns;c++){
+            int pre_r = r - edge_len;
+            int pre_c = c - edge_len;
+            int sum = dp[r][c];
+            if(pre_r >= 0){
+                sum -= dp[pre_r][c];
+            }
+            if(pre_c >= 0){
+                sum -= dp[r][pre_c];
+            }
+            if(pre_r >= 0 && pre_c >= 0){
+                sum += dp[pre_r][pre_c];
+            }
+            if(sum >= ele_num){
+                res++;
+            }
+        }
+    }
+    std::cout<< res << endl;
+}
+
+
+int check_password(std::string s,int l,int mid1,int mid2){
+    int left = mid1 - 1;
+    int right = mid2 + 1;
+    while (left >= 0 && right < l){
+        if(s[left] != s[right]){
+            break;
+        }
+        left--;
+        right++;
+    }
+    int cur_len = right - left - 1;
+    return cur_len;
+}
+
+void get_password(){
+//12HHHHA
+    std::string s;
+    while(cin>>s){
+        int max_len = 0;
+        int l = s.length();
+        for(int i = 0;i < l - 1;i++){
+            int ret1 = check_password(s,l,i,i);
+            max_len = max(max_len,ret1);
+            if(s[i] == s[i + 1]){
+                int ret2 = check_password(s,l,i,i + 1);
+                max_len = max(max_len,ret2);
+            }
+        }
+        std::cout<<max_len<<std::endl;
+    }
+}
+
+void reverse_sentence(){
+    //$bo*y gi!r#l
+    std::string line;
+    std::vector<std::string> v;
+    while(getline(cin,line)){
+        int l = line.size();
+        int left = 0;
+        int right = 0;
+        while (left < l){
+            while(left < l){
+                if((line[left] >= 'a' && line[left] <= 'z') || (line[left] >= 'A' && line[left] <= 'Z')){
+                    break;
+                }
+                left++;
+            }
+            right = left + 1;
+            while (right < l && ((line[right] >= 'a' && line[right] <= 'z') || (line[right] >= 'A' && line[right] <= 'Z'))){
+                right++;
+            }
+            int cur_len = right - left;
+            v.push_back(line.substr(left,cur_len));
+            left = right + 1;
+        }
+        for(int i = v.size() - 1;i >= 0;i--){
+            if(i != v.size() - 1){
+                std::cout<< " ";
+            }
+            std::cout<<v[i];
+        }
+        std::cout<<endl;
+    }
+}
+
+void merge_string(){
+    std::string s1,s2;
+    while(cin>> s1 >> s2) {
+        std::string s = s1 + s2;
+        int l = s.length();
+        std::vector<char> data_odd(l / 2);
+        std::vector<char> data_even(l / 2 + l % 2);
+        int odd_idx = 0;
+        int even_idx = 0;
+        for (int i = 0; i < l; i++) {
+            if (i % 2 == 0) {
+                data_even[even_idx] = s[i];
+                even_idx++;
+            } else {
+                data_odd[odd_idx] = s[i];
+                odd_idx++;
+            }
+        }
+        std::sort(data_odd.begin(), data_odd.end());
+        std::sort(data_even.begin(), data_even.end());
+        //如字符 'C'，代表的十进制是 12 ，其二进制为 1100 ，则翻转后为 0011，也就是3。转换后的字符是 '3'。
+        std::string s_new;
+        even_idx = 0;
+        odd_idx = 0;
+        for (int i = 0; i < l; i++) {
+            char c;
+            if (i % 2 == 0) {
+                c = data_even[even_idx];
+                even_idx++;
+            } else {
+                c = data_odd[odd_idx];
+                odd_idx++;
+            }
+            int num = 0;
+            bool change = false;
+            if (c >= '0' && c <= '9') {
+                num = c - '0';
+                change = true;
+            } else if (c >= 'a' && c <= 'f') {
+                num = c - 'a' + 10;
+                change = true;
+            } else if (c >= 'A' && c <= 'F') {
+                num = c - 'A' + 10;
+                change = true;
+            } else {
+                s_new += c;
+            }
+
+            if (change) {
+                std::bitset<4> b(num);
+                auto get = b.to_string();
+                std::reverse(get.begin(), get.end());
+                int num2 = 0;
+                int offset = 0;
+                for (int i = get.length() - 1; i >= 0; i--) {
+                    if (get[i] - '0' == 1) {
+                        num2 += 1 << offset;
+                    }
+                    offset++;
+                }
+                char next_num;;
+                if (num2 >= 0 && num2 <= 9) {
+                    next_num = num2 + '0';
+                } else if (num2 >= 10) {
+                    next_num = 'A' + num2 - 10;
+                }
+                //char next_num = reverse_bits(num);
+                s_new += next_num;
+            }
+        }
+        std::cout << s_new << endl;
+    }
+}
+
+void brother(){
+    //3 abc bca cab abc 1
+    int n;
+    cin>>n;
+    int n2 = n;
+    std::vector<std::string> v;
+    while (n2 > 0){
+        std::string word;
+        cin >> word;
+        v.push_back(word);
+        n2--;
+    }
+    std::string target;
+    std::cin>>target;
+    int k;
+    cin >> k;
+    std::sort(v.begin(),v.end());
+    int l = target.length();
+    int target_cnt[26]{};
+    for(int i = 0;i < l;i++){
+        target_cnt[target[i] - 'a']++;
+    }
+    std::string res;
+    int total = 0;
+    for(int i = 0;i < n;i++){
+        int l1 = v[i].length();
+        if(l != l1){
+            continue;
+        }
+        if(v[i] == target)
+            continue;
+        int cnt[26]{};
+        for(int j = 0;j < l;j++){
+            cnt[v[i][j] - 'a']++;
+        }
+        bool find = true;
+        for(int j = 0;j < 26;j++){
+            if(target_cnt[j] != cnt[j]){
+                find = false;
+                break;
+            }
+        }
+        if(find){
+            total++;
+            k--;
+            if(k == 0){
+                res = v[i];
+                //break;
+            }
+        }
+    }
+    std::cout<<total << endl;
+    std::cout<< res<<endl;
+}
+
+void crypt(){
+    //加密方法为：
+    //当内容是英文字母时则用该英文字母的后一个字母替换，同时字母变换大小写,如字母a时则替换为B；字母Z时则替换为a；
+    //当内容是数字时则把该数字加1，如0替换1，1替换2，9替换0；
+    //第一行输入一串要加密的密码
+    //第二行输入一串加过密的密码
+    //
+    //输出描述：
+    //第一行输出加密后的字符
+    //第二行输出解密后的字符
+    std::string line1;
+    getline(cin , line1);
+    int l1 = line1.length();
+    std::string s1;
+    for(int i = 0;i < l1;i++){
+        if(line1[i] >= '0'&& line1[i] <= '9'){
+            int next_n = (line1[i] - '0' + 1) % 10;
+            s1 += (char(next_n + '0'));
+        }else if(line1[i] >= 'a'&& line1[i] <= 'z'){
+            int offset = line1[i] - 'a';
+            offset = (offset + 1)%26;
+            s1 += char('A' + offset);
+        }else if(line1[i] >= 'A'&& line1[i] <= 'Z'){
+            int offset = line1[i] - 'A';
+            offset = (offset + 1)%26;
+            s1 += char('a' + offset);
+        }
+    }
+    std::string line2;
+    getline(cin , line2);
+    int l2 = line2.length();
+    std::string s2;
+    for(int i = 0;i < l2;i++){
+        if(line2[i] >= '0'&& line2[i] <= '9'){
+            int last_n = (line2[i] - '0' + 10 - 1) % 10;
+            s2 += (char(last_n + '0'));
+        }else if(line2[i] >= 'a'&& line2[i] <= 'z'){
+            int offset = line2[i] - 'a';
+            offset = (offset + 26 - 1)%26;
+            s2 += char('A' + offset);
+        }else if(line2[i] >= 'A'&& line2[i] <= 'Z'){
+            int offset = line2[i] - 'A';
+            offset = (offset + 26 - 1)%26;
+            s2 += char('a' + offset);
+        }
+    }
+    std::cout<<s1<<endl;
+    std::cout<<s2<<endl;
+}
+
+void sort_letter(){
+//A Famous Saying: Much Ado About Nothing (2012/8).
+//A aaAAbc dFgghh: iimM nNn oooos Sttuuuy (2012/8).
+    std::string line;
+    std::getline(cin,line);
+    int l = line.size();
+    std::vector<std::vector<char>> data(26);
+    std::unordered_map<int,char> m;
+    for(int i = 0;i < l;i++){
+        if((line[i] >= 'a' && line[i] <= 'z') ){
+            data[line[i] - 'a'].push_back(line[i]);
+        }else if(line[i] >= 'A' && line[i] <= 'Z'){
+            data[line[i] - 'A'].push_back(line[i]);
+        }else{
+            m[i] = line[i];
+        }
+    }
+    int index = 0;
+    int char_index = 0;
+    int offset_index = 0;
+    while (data[char_index].size() == 0){
+        char_index++;
+    }
+    char add[l + 1];
+    for(int i = 0;i < l;i++){
+        if(m.find(i) != m.end()){
+            add[i] = m[i];
+        }else{
+            add[i] = data[char_index][offset_index];
+            offset_index++;
+            if (offset_index >= data[char_index].size()){
+                char_index++;
+                offset_index = 0;
+            }
+            while (char_index <= 26 && data[char_index].size() == 0){
+                char_index++;
+            }
+        }
+    }
+    add[l] = '\0';
+    std::string str(add,l);
+    std::cout<< str << endl;
+}
+
+void singing_queue(){
+    //8
+    //186 186 150 200 160 130 197 200
+    int n;
+    cin>> n;
+    int cnt = n;
+    std::vector<int> height;
+    while (cnt > 0){
+        int h;
+        cin >>h;
+        height.push_back(h);
+        cnt--;
+    }
+    std::vector<int> dp_prefix(n);
+    std::vector<int> dp_suffix(n);
+    dp_prefix[0] = 1;
+    dp_suffix[n - 1] = 1;
+    for(int i = 1;i < n;i++){
+        dp_prefix[i] = 1;
+        for(int j = i - 1;j >= 0;j--){
+            if(height[i] > height[j]){
+                dp_prefix[i] = max(dp_prefix[i],dp_prefix[j] + 1);
+            }
+        }
+    }
+    for(int i = n - 2;i >= 0;i--){
+        dp_suffix[i] = 1;
+        for(int j = i + 1;j < n;j++){
+            if(height[i] > height[j]){
+                dp_suffix[i] = max(dp_suffix[i],dp_suffix[j] + 1);
+            }
+        }
+    }
+    int max_len = 0;
+    for(int i = 0;i < n;i++){
+        if(i == 0){
+            max_len = max(max_len,dp_suffix[i]);
+        }else if(i == n - 1){
+            max_len = max(max_len,dp_prefix[i]);
+        }else{
+            max_len = max(max_len,dp_prefix[i] + dp_suffix[i] - 1);
+        }
+    }
+    std::cout<< n - max_len;
+}
+
+void check_password(){
+    //1.长度超过8位
+    //2.包括：大写字母/小写字母/数字/其它符号，以上四种至少三种
+    //3.不能分割出两个相等的长度大于 2 的子串，例如 abcabc 可以分割出两个 abc，不合法，ababa 则无法分割出2个aba。
+    //注：其他符号不含空格或换行
+    std::string line;
+    while(getline(cin,line)){
+        //std::stringstream ss(line);
+        int l = line.length();
+        if(l <= 8){
+            std::cout<<"NG"<<endl;
+            continue;
+        }
+        bool small_letter = false;
+        bool big_letter = false;
+        bool digital = false;
+        bool special = false;
+        bool fail = false;
+        for(int i = 0;i < l;i++){
+            if(line[i] >= 'a' && line[i] <= 'z'){
+                small_letter = true;
+            }else if(line[i] >= 'A' && line[i] <= 'Z'){
+                big_letter = true;
+            }else if(line[i] >= '0' && line[i] <= '9'){
+                digital = true;
+            }else if(line[i] == ' ' || line[i] == '\n'){
+                fail = true;
+                break;
+            }else{
+                special = true;
+            }
+        }
+        for(int i = 0;i + 2 < l;i++){
+            std::string target = line.substr(i,3);
+            for(int j = i + 3;j < l;j++){
+                if(target == line.substr(j,3)){
+                    fail = true;
+                    break;
+                }
+            }
+            if(fail)
+                break;
+        }
+        if(fail){
+            std::cout<<"NG"<<endl;
+            continue;
+        }
+//        if(l/2 == 0 && line.substr(0,l/2) == line.substr(l/2,l/2)){
+//            std::cout<<"NG"<<endl;
+//            continue;
+//        }
+        int scores = 0;
+        if(small_letter)
+            scores++;
+        if(big_letter)
+            scores++;
+        if(digital)
+            scores++;
+        if(special)
+            scores++;
+        if(scores >= 3) {
+            std::cout << "OK" << endl;
+        }else{
+            std::cout << "NG" << endl;
+        }
+    }
+}
+
+class shaizi{
+    int left_ = 1;
+    int right_ = 2;
+    int forward_ = 3;
+    int back_ = 4;
+    int up_ = 5;
+    int down_ = 6;
+public:
+    void left(){
+        int tmp = left_;
+        left_ = up_;
+        up_ = right_;
+        right_ = down_;
+        down_ = tmp;
+    }
+    void right(){
+        int tmp = right_;
+        right_ = up_;
+        up_ = left_;
+        left_ = down_;
+        down_ = tmp;
+    }
+    void forward(){
+        int tmp = up_;
+        up_ = back_;
+        back_ = down_;
+        down_ = forward_;
+        forward_ = tmp;
+    }
+    void backward(){
+        int tmp = up_;
+        up_ = forward_;
+        forward_ = down_;
+        down_ = back_;
+        back_ = tmp;
+    }
+    void clockwise(){
+        int tmp = forward_;
+        forward_ = left_;
+        left_ = back_;
+        back_ = right_;
+        right_ = tmp;
+    }
+    void countclockwise(){
+        int tmp = forward_;
+        forward_ = right_;
+        right_ = back_;
+        back_ = left_;
+        left_ = tmp;
+    }
+    void print(){
+        std::cout<<to_string(left_) + to_string(right_)+ to_string(forward_)+
+                   to_string(back_)+ to_string(up_)+ to_string(down_) << std::endl;
+    }
+};
+
+void rotate(){
+//骰子是一个正方体，每个面有一个数字，初始为左 1，右 2，前 3，后 4，上 5，下 6，
+//可以向左翻转（用 L 表示向左翻转 1 次）；
+//可以向右翻转（用 R 表示向右翻转 1 次）；
+//可以向前翻转（用 F 表示向前翻转 1 次）；
+//可以向后翻转（用 B 表示向后翻转 1 次）；
+//可以逆时针翻转（用 A 表示向逆时针翻转 1 次）；
+//可以向顺时针翻转（用 C 表示向顺时针翻转 1 次）；
+    std::string line;
+    std::getline(cin,line);
+    shaizi obj;
+    for(int i = 0;i < line.length();i++){
+        if(line[i] == 'L'){
+            obj.left();
+        }else if(line[i] == 'R'){
+            obj.right();
+        }else if(line[i] == 'F'){
+            obj.forward();
+        }else if(line[i] == 'B'){
+            obj.backward();
+        }else if(line[i] == 'A'){
+            obj.countclockwise();
+        }else if(line[i] == 'C'){
+            obj.clockwise();
+        }
+    }
+    obj.print();
+}
+
+void count_good(){
+//第一行输入为新员工数量N，表示新员工编号为0到N-1，N的范围为[1,100]
+//第二行输入为30个整数，表示每天打卡的员工数量，每天至少有1名员工打卡
+//之后30行表示每天打开的员工id集合，id不会重复
+
+    int n;
+    std::cin>> n;
+    std::vector<int> days_cnt(30);
+    int everyday_cnt;
+    int days = 0;
+    int read_cnt = 30;
+    while (read_cnt > 0){
+        cin>>everyday_cnt;
+        days_cnt[days] = everyday_cnt;
+        days++;
+        read_cnt--;
+    }
+    std::vector<std::vector<int>> id_cnt_firsttime(n);
+    //每天打卡的id号
+    for(int i = 0;i < 30;i++){//天
+        for(int j = 0;j < days_cnt[i];j++){ //id
+            int id_no;
+            std::cin >> id_no;
+            if(id_cnt_firsttime[id_no].size() == 0){
+                id_cnt_firsttime[id_no] = {1,i,id_no};
+            }else{
+                id_cnt_firsttime[id_no][0]++;
+            }
+        }
+    }
+    std::sort(id_cnt_firsttime.begin(),id_cnt_firsttime.end(),[&](const std::vector<int>& p1,const std::vector<int>& p2)->bool{
+        if(p1.size() == 0)
+            return false;
+        if(p2.size() == 0)
+            return true;
+        if(p1[0] == p2[0]){
+            if(p1[1] == p2[1]){
+                return p1[2] < p2[2];
+            }
+            return p1[1] < p2[1];
+        }else{
+            return p1[0] > p2[0];
+        }
+    });
+    std::string res;
+    for(int i = 0;i < 5 && i < id_cnt_firsttime.size();i++){
+        if(id_cnt_firsttime[i].size() > 0){
+            if(res.length() != 0){
+                res += " ";
+            }
+            res += to_string(id_cnt_firsttime[i][2]);
+        }
+    }
+    std::cout << res << std::endl;
+}
+
 void error_log(){
     //1、 记录最多8条错误记录，循环记录，最后只用输出最后出现的八条错误记录。对相同的错误记录只记录一条，但是错误计数增加。最后一个斜杠后面的带后缀名的部分（保留最后16位）和行号完全匹配的记录才做算是“相同”的错误记录。
     //2、 超过16个字符的文件名称，只记录文件的最后有效16个字符；
@@ -826,4 +1431,557 @@ void bill(){
     }
     auto res = dp_bill(num_detail,1,total_money,0,choose,max_val,memo);
     std::cout<< res<<std::endl;
+}
+
+
+void move(){
+//A10;S20;W10;D30;X;A1A;B10A11;;A10;
+//A表示向左移动，D表示向右移动，W表示向上移动，S表示向下移动
+    std::string line;
+    std::getline(cin,line);
+    std::stringstream ss(line);
+    std::string ele;
+    int x_pos = 0;
+    int y_pos = 0;
+    while (getline(ss,ele,';')){
+        int step = 0;
+        try{
+            if(ele.length() == 2){
+                step = stoi(ele.substr(1,1));
+                auto check = std::to_string(step);
+                if(check != ele.substr(1,1))
+                    continue;
+            }else if(ele.length() == 3){
+                step = stoi(ele.substr(1,2));
+                auto check = std::to_string(step);
+                if(check != ele.substr(1,2))
+                    continue;
+            }else{
+                continue;
+            }
+        }catch(std::exception ex) {
+            continue;
+        }
+        if(ele[0]=='A'){
+            x_pos -= step;
+        }else if(ele[0]=='D'){
+            x_pos += step;
+        }else if(ele[0]=='W'){
+            y_pos += step;
+        }else if(ele[0]=='S'){
+            y_pos -= step;
+        }
+    }
+    std::cout<<x_pos<<","<<y_pos<<std::endl;
+}
+
+int union_find(std::vector<int> groups,int cur){
+    if(groups[cur] != cur){
+        groups[cur] = union_find(groups,groups[cur]);
+    }
+    return groups[cur];
+}
+
+void broadcast(){
+    //1 0 0
+    //0 1 0
+    //0 0 1
+    std::string line;
+    std::getline(std::cin,line);
+    std::stringstream ss(line);
+    std::string s_num;
+    std::vector<int> first;
+    while(getline(ss,s_num,' ')){
+        first.push_back(stoi(s_num));
+    }
+    std::vector<std::vector<int>> graph(first.size());
+    graph[0] = first;
+    int graph_idx = 1;
+    int rows = first.size() - 1;
+    while (rows > 0){
+        std::getline(std::cin,line);
+        std::stringstream ss2(line);
+        std::vector<int> v2;
+        while(getline(ss2,s_num,' ')){
+            v2.push_back(stoi(s_num));
+        }
+        graph[graph_idx] = v2;
+        graph_idx++;
+        rows--;
+    }
+    int cnt = 0;
+    int l = graph.size();
+    std::vector<int> groups(l);
+    for(int i = 0;i < l;i++){
+        groups[i] = i;
+    }
+    for(int i = 0;i < graph.size();i++){
+        for(int j = 0;j < graph[i].size();j++){
+            if(i == j)
+                continue;
+            if(graph[i][j] == 1){
+                int group1 = union_find(groups,i);
+                int group2 = union_find(groups,j);
+                if(group1 != group2){
+                    groups[group2] = group1;
+                }
+            }
+        }
+    }
+    std::unordered_set<int> set;
+    for(int i = 0;i < l;i++){
+        set.insert(groups[i]);
+    }
+    std::cout<<set.size() << std::endl;
+}
+
+void poker(){
+    //4 H
+    //5 S
+    //6 C
+    //7 D
+    //8 D
+    std::map<std::string,int> color_val;
+    color_val["H"] = 1;
+    color_val["S"] = 2;
+    color_val["C"] = 3;
+    color_val["D"] = 4;
+    std::vector<std::unordered_set<int>> num_color(15);
+    int n = 5;
+    while(n > 0){
+        std::string line;
+        getline(cin,line);
+        std::stringstream ss(line);
+        std::string s_num;
+        std::string color;
+        ss>>s_num>>color;
+        if(s_num == "A"){
+            num_color[1].insert(color_val[color]);
+        }else if(s_num == "J"){
+            num_color[11].insert(color_val[color]);
+        }else if(s_num == "Q"){
+            num_color[12].insert(color_val[color]);
+        }else if(s_num == "K"){
+            num_color[13].insert(color_val[color]);
+        }else{
+            num_color[stoi(s_num)].insert(color_val[color]);
+        }
+        n--;
+    }
+    //同花顺
+    int left = 1;
+    bool find = false;
+    while(left <= 14){
+        while(left <= 14){
+            if(num_color[left].size() != 0)
+                break;
+            left++;
+        }
+        int right = left+1;
+        int color = *num_color[left].begin();
+        while(right <= 14){
+            if(num_color[right].size() == 0){
+                break;
+            }
+            int right_color =  *(num_color[right].begin());
+            if(right_color != color)
+                break;
+            right++;
+        }
+        int cur_len = right - left;
+        if(cur_len == 5){
+            find = true;
+            std::cout<<"1"<<std::endl;
+            return;
+        }
+        break;
+    }
+    if(num_color[10].size() > 0 && num_color[11].size() > 0 && num_color[12].size() > 0 &&
+       num_color[13].size() > 0 && num_color[1].size() > 0 &&
+       *num_color[10].begin() == *num_color[11].begin() && *num_color[10].begin() == *num_color[12].begin() &&
+       *num_color[10].begin() == *num_color[13].begin() &&  *num_color[10].begin() == *num_color[1].begin()){
+        std::cout<<"1"<<std::endl;
+        return;
+    }
+    //炸弹
+    for(int i = 0;i <= 14;i++){
+        if(num_color[i].size() == 4){
+            std::cout<<"2"<<std::endl;
+            return;
+        }
+    }
+    //葫芦
+    bool find_3 = false;
+    bool find_2 = false;
+    for(int i = 0;i <= 14;i++){
+        if(num_color[i].size() == 3){
+            find_3 = true;
+        }
+        if(num_color[i].size() == 2){
+            find_2 = true;
+        }
+    }
+    if(find_2 && find_3){
+        std::cout<<"3"<<std::endl;
+        return;
+    }
+    //同花
+    int cnt[5] = {0};
+    for(int i = 0;i <= 14;i++){
+        if(!num_color[i].empty()){
+            cnt[*num_color[i].begin()]++;
+        }
+    }
+    for(int i = 1;i <= 4;i++){
+        if(cnt[i] == 5){
+            std::cout<<"4"<<std::endl;
+            return;
+        }
+    }
+    //普通顺子
+    left = 1;
+    find = false;
+    while(left <= 14){
+        while (left<=14 && num_color[left].size() == 0){
+            left++;
+        }
+        int right = left + 1;
+        while(right <= 14){
+            if(num_color[right].size() != 1)
+                break;
+            right++;
+        }
+        int cur_len = right - left;
+        if(cur_len == 5) {
+            std::cout << "5" << endl;
+            return;
+        }
+        break;
+    }
+    if(num_color[10].size() == 1 && num_color[11].size() == 1 && num_color[12].size() == 1 &&
+       num_color[13].size() == 1 && num_color[1].size() == 1){
+        std::cout<<"5"<<std::endl;
+        return;
+    }
+    //三条
+    find_3 = false;
+    for(int i = 1;i <= 4;i++){
+        if(num_color[i].size() == 3){
+            find_3 = true;
+        }
+    }
+    if(find_3){
+        std::cout<<"6"<<std::endl;
+        return;
+    }
+    //其他
+    std::cout<< 7<<std::endl;
+}
+
+void dfs_delete_folder(std::unordered_map<int,std::vector<int>>& graph,int del_node,std::set<int>& del_list){
+    if(del_list.find(del_node) != del_list.end()){
+        del_list.erase(del_node);
+    }
+    for(auto it = graph[del_node].begin();it != graph[del_node].end();it++){
+        dfs_delete_folder(graph,*it,del_list);
+    }
+}
+
+void delete_folder(){
+    //5
+    //8 6
+    //10 8
+    //6 0
+    //20 8
+    //2 6
+    //8
+    int n;
+    std::string s_n;
+    getline(cin,s_n);
+    n = stoi(s_n);
+    std::unordered_map<int,std::vector<int> > graph;
+    std::set<int> num_set;
+    while(n > 0){
+        std::string line;
+        getline(cin,line);
+        std::stringstream ss(line);
+        int cur,parent;
+        ss>>cur>>parent;
+        graph[parent].push_back(cur);
+        num_set.insert(cur);
+        num_set.insert(parent);
+        n--;
+    }
+    int delete_node;
+    cin>>delete_node;
+    //std::unordered_set<int> del_list;
+    dfs_delete_folder(graph,delete_node,num_set);
+    for(auto it = num_set.begin();it != num_set.end();it++){
+        if(it != num_set.begin()){
+            std::cout << " ";
+        }
+        if(*it != 0)
+            std::cout << *it;
+    }
+}
+
+void combine_divide_group(std::vector<int>& v,int idx,int choose_cnt,int cur_sum,int sum,int& min_diff){
+    if(idx == v.size()){
+        if(choose_cnt == 5){
+            int cur_diff = abs(sum - cur_sum - cur_sum);
+            min_diff = min(min_diff,cur_diff);
+        }
+        return;
+    }
+    //choose current
+    combine_divide_group(v,idx + 1,choose_cnt + 1,cur_sum + v[idx],sum,min_diff);
+    //skip current
+    combine_divide_group(v,idx + 1,choose_cnt,cur_sum,sum,min_diff);
+}
+
+void divide_group(){
+    //10 9 8 7 6 5 4 3 2 1
+    int n;
+    std::vector<int> v;
+    int sum = 0;
+    std::string line;
+    std::getline(cin,line);
+    std::stringstream ss(line);
+    while (ss >> n){
+        sum += n;
+        v.push_back(n);
+    }
+    int res = 1 << 31 - 1;
+    combine_divide_group(v,0,0,0,sum,res);
+    std::cout<< res;
+}
+
+void longest_string(){
+    //asdbuiodevauufgh
+    std::string s;
+    std::cin>>s;
+    int l = s.length();
+    int left = 0;
+    int right = 0;
+    std::unordered_set<char> set{'a','e','i','o','u','A','E','I','O','U'};
+    int max_len = 0;
+    while(left < l && right < l){
+        while(right < l && set.find(s[right]) != set.end()){
+            right++;
+        }
+        int cur_len = right - left;
+        max_len = max(max_len,cur_len);
+        left = right + 1;
+        right = left;
+    }
+    std::cout<<max_len<<std::endl;
+}
+
+void mars_calculate(){
+    //x$y = 3*x+y+2
+    //x#y = 2*x+3*y+4
+    //火星人公式中，$的优先级高于#，相同的运算符，按从左到右的顺序计算
+//7#6$5#12 = =7#(3*6+5+2)#12
+    std::string s;
+    std::cin >> s;
+    std::deque<int> st_num;
+    std::deque<char> st_opt;
+    int l = s.length();
+    for(int i = 0;i < l;){
+        if(s[i] == '#'){
+            st_opt.push_back('#');
+            i++;
+        }else if(s[i] == '$'){
+            int find_next = i + 1;
+            while (find_next < l){
+                if(s[find_next] >= '0' && s[find_next] <= '9'){
+                    find_next++;
+                }else{
+                    break;
+                }
+            }
+            int n1 = st_num.back();
+            st_num.pop_back();
+            int n_len = find_next - i;
+            int n2 = stoi(s.substr(i + 1,n_len));
+            int n3 = 3 * n1 + n2 + 2;
+            st_num.push_back(n3);
+            i = find_next;
+        }else{
+            int find_next = i + 1;
+            while (find_next < l){
+                if(s[find_next] >= '0' && s[find_next] <= '9'){
+                    find_next++;
+                }else{
+                    break;
+                }
+            }
+            int n_len = find_next - i;
+            int n1 = stoi(s.substr(i,n_len));
+            st_num.push_back(n1);
+            i = find_next;
+        }
+    }
+    //int sum = 0;
+    while (!st_opt.empty()){
+        int n1 = st_num.front();
+        st_num.pop_front();
+        int n2 = st_num.front();
+        st_num.pop_front();
+        st_opt.pop_front();
+        //x#y = 2*x+3*y+4
+        int n3 = 2 * n1 + 3 * n2 + 4;
+        st_num.push_front(n3);
+    }
+    std::cout<< st_num.front()<<std::endl;
+}
+
+void press_key(){
+    //1(,.)   2(abc)  3(def)
+    //4(ghi)  5(jkl)  6(mno)
+    //7(pqrs) 8(tuv)  9(wxyz)
+    //#       0(空格)  /
+    std::vector<std::vector<char>> num_char(10);
+    num_char[1].push_back({','});
+    num_char[1].push_back({'.'});
+    num_char[2].push_back({'a'});
+    num_char[2].push_back({'b'});
+    num_char[2].push_back({'c'});
+
+    num_char[3].push_back({'d'});
+    num_char[3].push_back({'e'});
+    num_char[3].push_back({'f'});
+
+    num_char[4].push_back({'g'});
+    num_char[4].push_back({'h'});
+    num_char[4].push_back({'i'});
+
+    num_char[5].push_back({'j'});
+    num_char[5].push_back({'k'});
+    num_char[5].push_back({'l'});
+
+    num_char[6].push_back({'m'});
+    num_char[6].push_back({'n'});
+    num_char[6].push_back({'o'});
+
+    num_char[7].push_back({'p'});
+    num_char[7].push_back({'q'});
+    num_char[7].push_back({'r'});
+    num_char[7].push_back({'s'});
+
+    num_char[8] = {'t','u','v'};
+    num_char[9] = {'w','x','y','z'};
+
+    std::string s;
+    std::cin>>s;
+    bool digtal_mode = true;
+    char pre_c = 0;
+    int l = s.length();
+    for(int i = 0;i < l;i++){
+        if(s[i] == '#'){
+            digtal_mode = !digtal_mode;
+        }else if(s[i] >= '0' && s[i] <= '9'){
+            if(digtal_mode){
+                std::cout<< s[i] - '0';
+            }else{//英文模式
+                if(i == l - 1)
+                    std::cout<<s[i];
+                if(s[i] != s[i + 1])
+                    std::cout<<s[i];
+                else{//往后找/
+                    int cnt = 0;
+                    char c = s[i];
+                    while(i < l - 1){
+                        if(s[i] != s[i + 1]){
+                            break;
+                        }
+                        i++;
+                        cnt++;
+                    }
+                    std::cout<<num_char[c - '0'][cnt%num_char[c - '0'].size()];
+                    if(i < l - 1 && s[i + 1] == '/'){ //跳过
+                        i++;
+                    }
+                }
+            }
+        }else if(s[i] == '/'){
+            if(!digtal_mode){
+
+            }
+        }
+    }
+}
+
+bool perm(std::vector<int>& nums,int l,int idx,int& cnt){
+    if(idx == l){
+        cnt--;
+        if(cnt == 0){
+            for(int i = 0;i < l;i++){
+                std::cout<< nums[i];
+            }
+            return false;
+        }else{
+            return true;
+        }
+    }
+    for(int i = idx;i < l;i++){
+        swap(nums[i],nums[idx]);
+        bool ret = perm(nums,l,idx + 1,cnt);
+        if(!ret){
+            return false;
+        }
+        swap(nums[i],nums[idx]);
+    }
+    return true;
+}
+
+void n_perm(){
+    int n;
+    std::cin >> n;
+    int cnt;
+    std::cin>>cnt;
+    std::vector<int> v;
+    for(int i = 0;i < n;i++){
+        v.push_back(i + 1);
+    }
+    perm(v,n,0,cnt);
+}
+
+void check_stack(){
+    //5 10 20 50 85 1
+    std::string s;
+    getline(std::cin,s);
+    std::stringstream ss(s);
+    std::string s_num;
+    std::vector<int> v;
+    //std::vector<int> prefix_sum;
+    std::unordered_map<int,int> m;//sum,index
+    m[0] = -1;
+    int sum = 0;
+    while (getline(ss,s_num,' ')){
+        int n = stoi(s_num);
+        if(sum >= n){
+            int target = sum - n;
+            if(m.find(target) != m.end()) {
+                int pre_idx = m[target];
+                //delete from prefix + 1 --- len - 1
+                int del_cnt = v.size() - pre_idx - 1;
+                v.resize(v.size() - del_cnt);
+                v.push_back(n * 2);
+            }else{
+                v.push_back(n);
+            }
+            sum += n;
+            m[sum] = v.size() - 1;
+        }else{
+            v.push_back(n);
+            sum += n;
+            m[sum] = v.size() - 1;
+        }
+    }
+    for(int i = v.size() - 1;i >= 0;i--){
+        if(i != v.size() - 1)
+            std::cout<<" ";
+        std::cout<< v[i];
+    }
 }
