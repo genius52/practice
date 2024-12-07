@@ -8,6 +8,549 @@
 using namespace std;
 
 
+int recursive_calc(std::string& s) {
+    int l = s.length();
+    int i = 0;
+    int sum = 0;
+    std::stack<int> st;
+    int cur_num = 0;
+    char last_opt = '+';
+    while (i < l) {
+        while (i < l && s[i] >= '0' && s[i] <= '9') {
+            cur_num *= 10;
+            cur_num += s[i] - '0'; s[0] = 'd';
+            i++;
+        }
+        if (s[i] == '(') {
+            int j = i + 1;
+            int tag = 1;
+            while (j < l) {
+                if (s[j] == '(') {
+                    tag++;
+                }
+                else if (s[j] == ')') {
+                    tag--;
+                }
+                if (tag == 0)
+                    break;
+                j++;
+            }
+            std::string s2 = s.substr(i + 1, j - i - 1);
+            cur_num = recursive_calc(s2);
+            i = j + 1;
+        }
+        else if (last_opt == '+') {
+            st.push(cur_num);
+            last_opt = s[i];
+            cur_num = 0;
+            i++;
+        }
+        else if (last_opt == '-') {
+            st.push(-cur_num);
+            last_opt = s[i];
+            cur_num = 0;
+            i++;
+        }
+        else if (last_opt == '*') {
+            st.top() *= cur_num;
+            last_opt = s[i];
+            cur_num = 0;
+            i++;
+        }
+        else if (last_opt == '/') {
+            st.top() /= cur_num;
+            last_opt = s[i];
+            cur_num = 0;
+            i++;
+        }
+    }
+    if (cur_num != 0) {
+        if (last_opt == '+') {
+            st.push(cur_num);
+        }
+        else if (last_opt == '-') {
+            st.push(-cur_num);
+        }
+        else if (last_opt == '*') {
+            st.top() *= cur_num;
+        }
+        else if (last_opt == '/') {
+            st.top() /= cur_num;
+        }
+    }
+    while (!st.empty()) {
+        sum += st.top();
+        st.pop();
+    }
+    return sum;
+}
+
+void calc() {
+    //输入字符串长度不超过 100 ，合法的字符包括 ”+, -, *, /, (, )” ， ”0-9” 
+    std::string input;
+    while (getline(cin, input)) {
+        int ret = recursive_calc(input);
+        std::cout << ret << endl;
+    }
+}
+
+int dp_word_distance(string& word1, string& word2, int idx1, int idx2, int l1, int l2, std::vector<std::vector<int>>& memo) {
+    if (idx1 == l1)
+        return l2 - idx2;
+    if (idx2 == l2)
+        return l1 - idx1;
+    if (memo[idx1][idx2] != -1)
+        return memo[idx1][idx2];
+
+    int res = 1 << 31 - 1;
+    if (word1[idx1] == word2[idx2]) {
+        res = min(res, dp_word_distance(word1, word2, idx1 + 1, idx2 + 1, l1, l2, memo));
+    }
+    res = min(res, 1 + dp_word_distance(word1, word2, idx1 + 1, idx2, l1, l2, memo));
+    res = min(res, 1 + dp_word_distance(word1, word2, idx1 + 1, idx2, l1, l2, memo));
+    res = min(res, 1 + dp_word_distance(word1, word2, idx1, idx2 + 1, l1, l2, memo));
+    //res = min(res, 2 + dp_word_distance(word1, word2, idx1 + 1, idx2 + 1, l1, l2, memo));
+    memo[idx1][idx2] = res;
+    return res;
+}
+
+void word_distance() {
+    //许可的编辑操作包括将一个字符替换成另一个字符，插入一个字符，删除一个字符
+    std::string word1, word2;
+    while (cin >> word1 >> word2) {
+        int l1 = word1.length();
+        int l2 = word2.length();
+        //std::vector<std::vector<int>> memo(l1, std::vector<int>(l2));
+        //auto res = dp_word_distance(word1, word2, 0, 0, l1, l2, memo);
+        //std::cout << res << endl;
+        std::vector<std::vector<int>> dp(l1 + 1, std::vector<int>(l2 + 1));//dp[i][j] 字符串word1的i个字符串 变成word2的j个字符串要的最小编辑距离
+        for (int i = 1; i <= l2; i++) {//只能执行添加,针对word1
+            dp[0][i] = i;
+        }
+        for (int i = 1; i <= l1; i++) {//只能执行删除,针对word1
+            dp[i][0] = i;
+        }
+        for (int i = 1; i <= l1; i++) {
+            for (int j = 1; j <= l2; j++) {
+                int opt_del_word1 = 1 + dp[i - 1][j];//删除和插入是一回事
+                int opt_del_word2 = 1 + dp[i][j - 1];
+                int opt_replace = dp[i - 1][j - 1];//修改
+                if (word1[i] != word2[j])//如果相等，就等于dp[i - 1][j - 1]
+                    opt_replace++;
+
+                dp[i][j] = min(min(opt_del_word1, opt_del_word2), opt_replace);
+            }
+        }
+    std:; cout << dp[l1][l2] << endl;
+
+    }
+}
+
+
+struct listnode {
+    int val = 0;
+    listnode* next = nullptr;
+};
+
+listnode* deletenode(listnode* node, int val) {
+    listnode* dummy = new listnode;
+    dummy->next = node;
+    listnode* pre = dummy;
+    //std::vector<listnode*> to_del;
+    while (node != nullptr) {
+        while (node != nullptr && node->val == val) {
+            node = node->next;
+        }
+        pre->next = node;
+        pre = node;
+        node = node->next;
+    }
+    //auto new_haed = dummy->next;
+    //delete(dummy);
+    //dummy = nullptr;
+    return dummy->next;
+}
+
+void delete_list() {
+    // 6 2 1 2 3 2 5 1 4 5 7 2 2
+//则第一个参数6表示输入总共6个节点，第二个参数2表示头节点值为2，剩下的2个一组表示第2个节点值后面插入第1个节点值，为以下表示:
+//    1 2 表示为
+//        2->1
+//        链表为2->1
+    int n;
+    //std::string input;
+    int head_val;
+    std::unordered_map<int, listnode*> m;
+    //while(getline(std::cin, input)) {
+    while (cin >> n >> head_val) {
+        //stringstream ss(input);
+        //ss >> n;
+
+        //ss >> head_val;
+        std::unordered_map<int, listnode*> m;
+        listnode* head = new listnode();
+        head->val = head_val;
+        m[head_val] = head;
+        for (int i = 0; i < n - 1; i++) {
+            int from = 0;
+            int to = 0;
+            cin >> to;
+            cin >> from;
+            listnode* node1 = nullptr;
+            if (m.find(from) == m.end()) {
+                node1 = new listnode();
+                node1->val = from;
+                m[from] = node1;
+            }
+            else {
+                node1 = m[from];
+            }
+            listnode* node2 = nullptr;
+            if (m.find(to) == m.end()) {
+                node2 = new listnode();
+                node2->val = to;
+                m[to] = node2;
+            }
+            else {
+                node2 = m[to];
+            }
+            //node2->next = node1;
+            auto oldto = node1->next;
+            node2->next = oldto;
+            node1->next = node2;
+        }
+        int delete_val = 0;
+        cin >> delete_val;
+        auto new_head = deletenode(head, delete_val);
+        auto visit = new_head;
+        while (visit != nullptr) {
+            if (visit != new_head) {
+                std::cout << " ";
+            }
+            std::cout << visit->val;
+            visit = visit->next;
+        }
+    }
+}
+
+void beauty() {
+    //2
+    //zhangsan
+    //    lisi
+    int n;
+    while (cin >> n) {
+        std::vector<int> res(n);
+        for (int i = 0; i < n; i++) {
+            std::string word;
+            cin >> word;
+            int cnt[26]{};
+            for (auto c : word) {
+                cnt[c - 'a']++;
+            }
+            std::vector<int> record;
+            for (int i = 0; i < 26; i++) {
+                if (cnt[i] != 0)
+                    record.push_back(cnt[i]);
+            }
+            sort(record.begin(), record.end());
+            int sum = 0;
+            int score = 26;
+            for (int i = record.size() - 1; i >= 0; i--) {
+                sum += record[i] * score;
+                score--;
+            }
+            res[i] = sum;
+        }
+        for (int i = 0; i < n; i++) {
+            std::cout << res[i] << std::endl;
+        }
+    }
+}
+
+void maza() {
+    int rows, columns;
+    while (cin >> rows >> columns) {
+        //cin.ignore();
+        std::vector<std::vector<int>> data(rows, std::vector<int>(columns));
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < columns; j++) {
+                int val = 0;
+                cin >> val;
+                if (val == 1)
+                    data[i][j] = -1;
+            }
+        }
+
+        std::queue<std::pair<int, int>> q;
+        q.push({ 0,0 });
+        data[0][0] = 1;
+        std::vector<std::vector<int>> dirs{ {-1,0},{1,0},{0,-1},{0,1} };
+        int steps = 2;
+        while (!q.empty()) {
+            int len = q.size();
+            bool find = false;
+            for (int i = 0; i < len; i++) {
+                auto cur = q.front();
+                if (cur.first == rows - 1 && cur.second == columns - 1) {
+                    find = true;
+                    break;
+                }
+                q.pop();
+                for (auto dir : dirs) {
+                    int next_r = cur.first + dir[0];
+                    int next_c = cur.second + dir[1];
+                    if (next_r < 0 || next_r >= rows || next_c < 0 || next_c >= columns) {
+                        continue;
+                    }
+                    if (data[next_r][next_c] == -1) {
+                        continue;
+                    }
+                    if (data[next_r][next_c] == 0) {
+                        data[next_r][next_c] = steps;
+                        q.push({ next_r,next_c });
+                    }
+                }
+            }
+            if (find)
+                break;
+            steps++;
+        }
+        std::vector<std::pair<int, int>> trace{ { rows - 1,columns - 1} };
+        std::queue<std::pair<int, int>> q2;
+        q2.push({ rows - 1,columns - 1 });
+        steps = data[rows - 1][columns - 1] - 1;
+        while (!q2.empty()) {
+            auto cur = q2.front();
+            if (cur.first == 0 && cur.second == 0)
+                break;
+            q2.pop();
+            for (auto dir : dirs) {
+                int last_r = cur.first + dir[0];
+                int last_c = cur.second + dir[1];
+                if (last_r < 0 || last_r >= rows || last_c < 0 || last_c >= columns) {
+                    continue;
+                }
+                if (data[last_r][last_c] == -1) {
+                    continue;
+                }
+                if (data[last_r][last_c] == steps)
+                {
+                    q2.push({ last_r,last_c });
+                    trace.push_back({ last_r,last_c });
+                }
+            }
+            steps--;
+        }
+        for (int i = trace.size() - 1; i >= 0; i--) {
+            std::cout << "(" << trace[i].first << "," << trace[i].second << ")" << endl;
+        }
+    }
+}
+
+void recr_weight(std::vector<std::pair<int, int>>& data, int l, int idx, int weight, std::unordered_set<int>& s) {
+    if (idx == l) {
+        s.insert(weight);
+        return;
+    }
+    for (int i = 0; i <= data[idx].second; i++) {
+        recr_weight(data, l, idx + 1, weight + data[idx].first * i, s);
+    }
+}
+
+void weight() {
+    //对于每组测试数据：
+    //第一行：n-- - 砝码的种数(范围[1, 10])
+    //    第二行：m1 m2 m3 ... mn-- - 每种砝码的重量(范围[1, 2000])
+    //    第三行：x1 x2 x3 ....xn-- - 每种砝码对应的数量(范围[1, 10])
+    int cnt;
+    while (cin >> cnt) {
+        cin.ignore();
+        std::string line1, line2;
+        getline(cin, line1);
+        getline(cin, line2);
+        std::stringstream ss1(line1);
+        int weight = 0;
+        std::vector<std::pair<int, int>> data(cnt);
+        int idx = 0;
+        while (ss1 >> weight) {
+            data[idx].first = weight;
+            idx++;
+        }
+        std::stringstream ss2(line2);
+        int num = 0;
+        idx = 0;
+        while (ss2 >> num) {
+            data[idx].second = num;
+            idx++;
+        }
+        std::unordered_set<int> s;
+        s.insert(0);
+        //recr_weight(data, data.size(), 0, 0, s);
+        for (int i = 0; i < cnt; i++) {
+            std::unordered_set<int> s2 = s;
+            for (int j = 1; j <= data[i].second; j++) {
+                for (auto it = s2.begin(); it != s2.end(); it++) {
+                    s.insert(*it + data[i].first * j);
+                }
+            }
+        }
+        std::cout << s.size() << endl;
+    }
+}
+
+
+void fall_ball() {
+    double height = 0;
+    cin >> height;
+    height *= 100000;
+    int n = 5;
+    double sum = height;
+    height /= 2;
+    do {
+        sum += height * 2;
+        height /= 2;
+        n--;
+    } while (n > 1);
+    double d = double(sum) / double(100000);
+    std::cout << d << std::endl;
+    std::cout << double(height) / double(100000) << std::endl;
+}
+
+void crypt2() {
+    //TRAILBLAZERS
+    //A B C D E F G H I J K L M N O P Q R S T U V W X Y Z
+    //T R A I L B Z E S C D F G H J K M N O P Q U V W X Y(实际需建立小写字母的字母表，此字母表仅为方便演示）
+    std::string key;
+    getline(cin, key);
+    std::string word;
+    getline(cin, word);
+    char arr[26];
+    std::vector<bool> visited(26);
+    int l = key.size();
+    std::string new_key;
+    for (int i = 0; i < l; i++) {
+        if (!visited[key[i] - 'a']) {
+            visited[key[i] - 'a'] = true;
+            new_key.push_back(key[i]);
+        }
+    }
+    char new_letter[26];
+    int index = 0;
+    int l2 = new_key.length();
+    for (int i = 0; i < l2; i++) {
+        new_letter[index] = new_key[i];
+        index++;
+    }
+    for (int i = 0; i < 26; i++) {
+        if (!visited[i]) {
+            new_letter[index] = i + 'a';
+            index++;
+        }
+    }
+    std::string res;
+    for (int i = 0; i < word.size(); i++) {
+        res.push_back(new_letter[word[i] - 'a']);
+    }
+    std::cout << res << endl;
+
+}
+
+void ip_change() {
+    //39.66.68.72
+    //3868643487
+
+    //658654280
+    //230.150.208.159
+    std::string line1;
+    getline(cin, line1);
+    stringstream ss1(line1);
+
+    std::string line2;
+    getline(cin, line2);
+    //stringstream ss2(line2);
+
+    int num;
+    std::string s_num;
+    std::vector<int> v;
+    while (getline(ss1, s_num, '.')) {
+        int i = stoi(s_num);
+        v.push_back(i);
+    }
+    long long total = 0;
+    int num_cnt = 0;
+    for (int i = v.size() - 1; i >= 0; i--) {
+        int n = v[i];
+        long long offset = 0;
+        for (int j = 0; j < 8; j++) {
+            if ((n | (static_cast <long long>(1) << offset)) == n) {
+                total |= static_cast<long long>(1) << (offset + (num_cnt * 8));
+            }
+            offset++;
+        }
+        num_cnt++;
+    }
+
+    //second line
+    long long num2 = stoll(line2);
+    int n1 = 0;
+    int n2 = 0;
+    int n3 = 0;
+    int n4 = 0;
+    for (int i = 0; i < 8; i++) {
+        long long offset = static_cast<long long>(1) << i;
+        if ((num2 | offset) == num2) {
+            n4 |= 1 << i;
+        }
+    }
+    for (int i = 8; i < 16; i++) {
+        long long offset = static_cast<long long>(1) << i;
+        if ((num2 | offset) == num2) {
+            n3 |= 1 << (i - 8);
+        }
+    }
+    for (int i = 16; i < 24; i++) {
+        long long offset = static_cast<long long>(1) << i;
+        if ((num2 | offset) == num2) {
+            n2 |= 1 << (i - 16);
+        }
+    }
+    for (int i = 24; i < 32; i++) {
+        long long offset = static_cast<long long>(1) << i;
+        if ((num2 | offset) == num2) {
+            n1 |= 1 << (i - 24);
+        }
+    }
+    std::cout << total << endl;
+    std::cout << n1 << "." << n2 << "." << n3 << "." << n4 << endl;
+}
+
+
+void check_letter() {
+    string line1;
+    getline(cin, line1);
+    std::stringstream ss(line1);
+    std::string word;
+    std::unordered_set<std::string> record;
+    while (ss >> word) {
+        std::sort(word.begin(), word.end());
+        record.insert(word);
+    }
+    string line2;
+    getline(cin, line2);
+    std::stringstream ss2(line2);
+    bool find = true;
+    while (ss2 >> word) {
+        std::sort(word.begin(), word.end());
+        if (record.find(word) == record.end()) {
+            find = false;
+            break;
+        }
+    }
+    if (find)
+        std::cout << "true" << endl;
+    else
+        std::cout << "false" << endl;
+}
 
 void check_area(){
     //2 5 2 6
