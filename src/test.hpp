@@ -8,6 +8,264 @@
 using namespace std;
 
 
+void common_substring(){
+    std::string s1,s2;
+    while(cin >> s1 >> s2){
+        if(s1.length() > s2.length())
+            swap(s1,s2);
+        int l1 = s1.length();
+        int l2 = s2.length();
+
+        if(l1 == 0 || l2 == 0){
+            std::cout<<-1<<endl;
+            continue;
+        }
+        //dp[i][j]: s1[i - 1],s2[j - 1]相同子字符串的长度
+        std::vector<std::vector<int>> dp(l1,std::vector<int>(l2));
+        for(int i = 0;i < l1;i++){
+            if(s1[i] == s2[0]){
+                dp[i][0] = 1;
+            }
+        }
+        for(int j = 0;j < l2;j++){
+            if(s1[0] == s2[j]){
+                dp[0][j] = 1;
+            }
+        }
+        int max_len = 0;
+        int max_len_idx = max(l1,l2);
+        for(int i = 1;i < l1;i++){
+            for(int j = 1;j < l2;j++){
+                if(s1[i] == s2[j]){
+                    dp[i][j] = max(dp[i][j],1 + dp[i - 1][j - 1]);
+                    if(dp[i][j] > max_len){
+                        max_len = dp[i][j];
+                        max_len_idx = i - max_len + 1;
+                    }
+                }
+            }
+        }
+        if(max_len == 0){
+            std::cout<<-1<<endl;
+        }else{
+            std::string sub = s1.substr(max_len_idx,max_len);
+            std::cout<<sub<<endl;
+        }
+    }
+}
+
+class player{
+public:
+    int total_ = 0;
+    int cur_song_ = 0;
+    int cur_list_ = 0;
+
+    player(int total){
+        total_ = total;
+        cur_song_ = 1;
+        cur_list_ = 1;
+    }
+    void up(){
+        cur_song_--;
+        if(cur_song_ < cur_list_){
+            cur_list_--;
+            if(cur_list_ <= 0){
+                if(total_ > 4)
+                    cur_list_ = total_ - 3;
+                else{
+                    cur_list_ = 1;
+                }
+            }
+        }
+        if(cur_song_ == 0){
+            cur_song_ = total_;
+        }
+    }
+    void down(){
+        cur_song_++;
+        if(cur_song_ > total_){
+            cur_song_ = 1;
+            if(total_ > 4){
+                cur_list_ = 1;
+            }
+        }else{
+            if(cur_song_ > cur_list_ + 3){
+                cur_list_++;
+            }
+        }
+    }
+};
+
+void mp3(){
+    int n = 0;
+    std::string cmd;
+    while (cin >> n >> cmd){
+        player obj(n);
+        for(int i = 0;i < cmd.size();i++){
+            if(cmd[i]=='U')
+                obj.up();
+            else{
+                obj.down();
+            }
+        }
+        for(int i = obj.cur_list_;i <= min(obj.cur_list_ + 3,obj.total_);i++){
+            if(i != obj.cur_list_)
+                std::cout<<" ";
+            std::cout<<i;
+        }
+        std::cout<< std::endl;
+        std::cout<<obj.cur_song_<<std::endl;
+    }
+}
+
+
+//sliding window
+void dna(){
+    std::string s;
+    while(cin >> s){
+        int target_len;
+        cin >> target_len;
+        int g_cnt = 0;
+        int c_cnt = 0;
+        std::string max_s;
+        double max_ratio = 0;
+        int l = s.length();
+        int left = 0;
+        int right = left;
+        int cnt = 0;
+        while(right < l && right - left + 1 < target_len){
+            if(s[right] == 'G' || s[right] == 'C'){
+                cnt++;
+            }
+            right++;
+        }
+        double ratio = double(cnt)/double(target_len);
+        if(ratio > max_ratio){
+            max_ratio = ratio;
+            max_s = s.substr(left,right - left + 1);
+        }
+        while(left + target_len <= l){
+            if(s[left] == 'G' || s[left] == 'C'){
+                cnt--;
+            }
+            left++;
+            right++;
+            if(s[right] == 'G' || s[right] == 'C'){
+                cnt++;
+            }
+            double ratio = double(cnt)/double(target_len);
+            if(ratio > max_ratio){
+                max_ratio = ratio;
+                max_s = s.substr(left,right - left + 1);
+            }
+        }
+        std::cout<<max_s<<endl;
+    }
+}
+
+void one_char(){
+    std::string s;
+    while(cin>>s){
+        std::unordered_map<char,int> m;
+        int l = s.length();
+        for(int i = 0;i < l;i++){
+            m[s[i]]++;
+        }
+        char c = -1;
+        bool find = false;
+        for(int i = 0;i < l;i++){
+            if(m[s[i]] == 1){
+                find = true;
+                c = s[i];
+                break;
+            }
+        }
+        if(find)
+            std::cout<<c<<endl;
+        else{
+            std::cout<<-1<<endl;
+        }
+    }
+}
+
+void string_add(){
+    std::string s1,s2;
+    while(cin >> s1 >> s2){
+        int l1 = s1.size();
+        int l2 = s2.size();
+        bool upgrade = false;
+        int idx1 = l1 - 1;
+        int idx2 = l2 - 1;
+        std::vector<char> v;
+        while(idx1 >= 0 && idx2 >= 0){
+            int cur = s1[idx1] - '0' + s2[idx2] - '0';
+            if(upgrade){
+                cur++;
+            }
+            if(cur >= 10){
+                upgrade = true;
+                cur %= 10;
+            }else{
+                upgrade = false;
+            }
+            v.push_back(cur + '0');
+            idx1--;
+            idx2--;
+        }
+        while (idx1 >= 0){
+            int cur = s1[idx1] - '0';
+            if(upgrade){
+                cur++;
+            }
+            if(cur >= 10){
+                upgrade = true;
+                cur %= 10;
+            }else{
+                upgrade = false;
+            }
+            v.push_back(cur + '0');
+            idx1--;
+        }
+        while (idx2 >= 0){
+            int cur = s2[idx2] - '0';
+            if(upgrade){
+                cur++;
+            }
+            if(cur >= 10){
+                upgrade = true;
+                cur %= 10;
+            }else{
+                upgrade = false;
+            }
+            v.push_back(cur + '0');
+            idx2--;
+        }
+        if(upgrade)
+            v.push_back('1');
+        std::reverse(v.begin(), v.end());
+        std::string res(v.begin(),v.end());
+        std::cout<<res<<endl;
+    }
+}
+
+void seven(){
+    int n = 0;
+    while(cin >> n){
+        int cnt = 0;
+        for(int i = 7;i <= n;i++){
+            if(i % 7 == 0){
+                cnt++;
+            }else{
+                string s = to_string(i);
+                if(s.find('7') != string::npos){
+                    cnt++;
+                }
+            }
+        }
+        std::cout<<cnt<<endl;
+    }
+}
+
 int recursive_calc(std::string& s) {
     int l = s.length();
     int i = 0;

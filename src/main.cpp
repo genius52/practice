@@ -13,11 +13,19 @@
 using namespace std;
 
 
+void command(){
+    //reset
+    //reset board
+    //board add
+    //board delet
+    //reboot backplane
+    //backplane abort
+}
 
-//å¯¹äºæ¯ä¸ªä¸‹æ ‡ iï¼ˆå…¶ä¸­ 0 <= i < nums.lengthï¼‰ï¼Œç‹¬ç«‹æ‰§è¡Œä»¥ä¸‹æ“ä½œï¼š
-//å¦‚æœ nums[i] > 0ï¼šä»ä¸‹æ ‡ i å¼€å§‹ï¼Œå‘ å³ ç§»åŠ¨ nums[i] æ­¥ï¼Œåœ¨å¾ªç¯æ•°ç»„ä¸­è½è„šçš„ä¸‹æ ‡å¯¹åº”çš„å€¼èµ‹ç»™ result[i]ã€‚
-//å¦‚æœ nums[i] < 0ï¼šä»ä¸‹æ ‡ i å¼€å§‹ï¼Œå‘ å·¦ ç§»åŠ¨ abs(nums[i]) æ­¥ï¼Œåœ¨å¾ªç¯æ•°ç»„ä¸­è½è„šçš„ä¸‹æ ‡å¯¹åº”çš„å€¼èµ‹ç»™ result[i]ã€‚
-//    å¦‚æœ nums[i] == 0ï¼šå°† nums[i] çš„å€¼èµ‹ç»™ result[i]ã€‚
+//¶ÔÓÚÃ¿¸öÏÂ±ê i£¨ÆäÖĞ 0 <= i < nums.length£©£¬¶ÀÁ¢Ö´ĞĞÒÔÏÂ²Ù×÷£º
+//Èç¹û nums[i] > 0£º´ÓÏÂ±ê i ¿ªÊ¼£¬Ïò ÓÒ ÒÆ¶¯ nums[i] ²½£¬ÔÚÑ­»·Êı×éÖĞÂä½ÅµÄÏÂ±ê¶ÔÓ¦µÄÖµ¸³¸ø result[i]¡£
+//Èç¹û nums[i] < 0£º´ÓÏÂ±ê i ¿ªÊ¼£¬Ïò ×ó ÒÆ¶¯ abs(nums[i]) ²½£¬ÔÚÑ­»·Êı×éÖĞÂä½ÅµÄÏÂ±ê¶ÔÓ¦µÄÖµ¸³¸ø result[i]¡£
+//    Èç¹û nums[i] == 0£º½« nums[i] µÄÖµ¸³¸ø result[i]¡£
 class Solution1 {
 public:
     vector<int> constructTransformedArray(vector<int>& nums) {
