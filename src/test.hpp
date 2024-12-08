@@ -8,6 +8,289 @@
 using namespace std;
 
 
+
+//5
+//23 61
+//61 59
+//59 34
+//34 56
+//56 35
+//(A(((BC)D)E))
+std::pair<int, std::pair<int, int>>  calc_maza(string s, std::unordered_map<char, std::pair<int, int>>& m) {
+    int l = s.length();
+    stack<int> st;
+    int i = 0;
+    int sum = 0;
+    int pre_rows = 0;
+    int pre_columns = 0;
+    while (i < l) {
+        if (s[i] >= 'A' && s[i] <= 'Z') {
+            if (pre_rows == 0 && pre_columns == 0) {
+                //st.push(s[i]);
+                pre_rows = m[s[i]].first;
+                pre_columns = m[s[i]].second;
+            }
+            else {
+                int cur_rows = m[s[i]].first;
+                int cur_columns = m[s[i]].second;
+                int opt_cnt = pre_rows * cur_columns * pre_columns;
+                pre_columns = cur_columns;
+                sum += opt_cnt;
+            }
+            i++;
+        }
+        else if (s[i] == '(') {
+            int j = i + 1;
+            int tag = 1;
+            while (j < l) {
+                if (s[j] == '(') {
+                    tag++;
+                }
+                else if (s[j] == ')') {
+                    tag--;
+                }
+                if (tag == 0) {
+                    break;
+                }
+                j++;
+            }
+            auto ret = calc_maza(s.substr(i + 1, j - i - 1), m);
+            sum += ret.first;
+
+            if (pre_rows == 0 && pre_columns == 0) {
+                pre_rows = ret.second.first;
+                pre_columns = ret.second.second;
+            }
+            else {
+                int cur_rows = ret.second.first;
+                int cur_columns = ret.second.second;
+                int opt_cnt = pre_rows * cur_columns * pre_columns;
+                pre_columns = cur_columns;
+                sum += opt_cnt;
+            }
+            i = j + 1;
+        }
+    }
+    return { sum, {pre_rows,pre_columns} };
+}
+
+void maza_express() {
+    //输入多行，先输入要计算乘法的矩阵个数n，每个矩阵的行数，列数，总共2n的数，最后输入要计算的法则
+    //计算的法则为一个字符串，仅由左右括号和大写字母（'A'~'Z'）组成，保证括号是匹配的且输入合法！
+    int n = 0;
+    while (cin >> n) {
+        std::unordered_map<char, std::pair<int, int>> m;
+        char c = 'A';
+        int rows = 0;
+        int columns = 0;
+        for (int i = 0; i < n; i++) {
+            cin >> rows >> columns;
+            m[c] = { rows,columns };
+            c++;
+        }
+        string exp;
+        cin >> exp;
+        if (exp[0] == '(') {
+            exp = exp.substr(1, exp.length() - 2);
+        }
+        auto res = calc_maza(exp, m);
+        std::cout << res.first << endl;
+    }
+
+}
+
+void cal_maza() {
+    ////输入描述：
+    //第一行包含一个正整数x，代表第一个矩阵的行数
+    //    第二行包含一个正整数y，代表第一个矩阵的列数和第二个矩阵的行数
+    //    第三行包含一个正整数z，代表第二个矩阵的列数
+    //    之后x行，每行y个整数，代表第一个矩阵的值
+    //    之后y行，每行z个整数，代表第二个矩阵的值
+    int first_rows, first_columns, second_columns;
+    while (cin >> first_rows) {
+        cin >> first_columns;
+        cin >> second_columns;
+        std::vector<std::vector<int>> first(first_rows, std::vector<int>(first_columns));
+        for (int r = 0; r < first_rows; r++) {
+            for (int c = 0; c < first_columns; c++) {
+                cin >> first[r][c];
+            }
+        }
+        std::vector<std::vector<int>> second(first_columns, std::vector<int>(second_columns));
+        for (int r = 0; r < first_columns; r++) {
+            for (int c = 0; c < second_columns; c++) {
+                cin >> second[r][c];
+            }
+        }
+        std::vector<std::vector<int>> res(first_rows, std::vector<int>(second_columns));
+        for (int r = 0; r < first_rows; r++) {
+            for (int c = 0; c < second_columns; c++) {
+                for (int c2 = 0; c2 < first_columns; c2++) {
+                    res[r][c] += first[r][c2] * second[c2][c];
+                }
+            }
+        }
+        for (int r = 0; r < first_rows; r++) {
+            for (int c = 0; c < second_columns; c++) {
+                if (c != 0)
+                    std::cout << " ";
+                std::cout << res[r][c];
+            }
+            std::cout << endl;
+        }
+    }
+}
+
+void game24() {
+    std::string input;
+    while (getline(cin, input)) {
+        stringstream ss(input);
+        float n1, n2, n3, n4;
+        ss >> n1 >> n2 >> n3 >> n4;
+        std::vector<float> nums{ n1,n2,n3,n4 };
+        unordered_set<string> visited;
+        std::queue<std::vector<float>> q;
+        q.push(nums);
+        bool find = false;
+        while (!q.empty()) {
+            int len = q.size();
+            for (int i = 0; i < len; i++) {
+                auto cur = q.front();
+                q.pop();
+                int l = cur.size();
+                if (l == 1) {
+                    if (abs(cur[0] - 24) < 0.001) {
+                        find = true;
+                        break;
+                    }
+                    else {
+                        continue;
+                    }
+                }
+                for (int m = 0; m < l; m++) {
+                    for (int n = 0; n < l; n++) {
+                        if (m == n)
+                            continue;
+                        float opt1 = cur[m] + cur[n];
+                        float opt2 = cur[m] - cur[n];
+                        float opt3 = cur[m] * cur[n];
+                        float opt4 = cur[m] / cur[n];
+                        if (l > 2) {
+                            std::vector<float> next1;
+                            next1.push_back(opt1);
+                            std::vector<float> next2;
+                            next2.push_back(opt2);
+                            std::vector<float> next3;
+                            next3.push_back(opt3);
+                            std::vector<float> next4;
+                            next4.push_back(opt4);
+                            for (int x = 0; x < l; x++) {
+                                if (x != m && x != n) {
+                                    next1.push_back(cur[x]);
+                                    next2.push_back(cur[x]);
+                                    next3.push_back(cur[x]);
+                                    next4.push_back(cur[x]);
+                                }
+                            }
+                            q.push(next1);
+                            q.push(next2);
+                            q.push(next3);
+                            q.push(next4);
+                        }
+                        else {
+                            q.push({ opt1 });
+                            q.push({ opt2 });
+                            q.push({ opt3 });
+                            q.push({ opt4 });
+                        }
+                    }
+                }
+            }
+            if (find)
+                break;
+        }
+        if (find)
+            std::cout << "true" << endl;
+        else
+            std::cout << "false" << endl;
+    }
+}
+
+void command() {
+    //reset
+    //reset board
+    //board add
+    //board delet
+    //reboot backplane
+    //backplane abort
+
+    //命   令	执   行
+    //reset	reset what
+    //    reset board	board fault
+    //    board add	where to add
+    //    board delete	no board at all
+    //    reboot backplane	impossible
+    //    backplane abort	install first
+    //    he he	unknown command
+
+    std::unordered_map<string, string> cmd_exec;
+    cmd_exec["reset"] = "reset what";
+    cmd_exec["reset board"] = "board fault";
+    cmd_exec["board add"] = "where to add";
+    cmd_exec["board delete"] = "no board at all";
+    cmd_exec["reboot backplane"] = "impossible";
+    cmd_exec["backplane abort"] = "install first";
+
+    //std::unordered_map<string, string> one_key;
+
+    std::vector<std::vector<std::string>> cmd{ {"reset"},{"reset", "board"},{"board", "add"} ,{"board", "delete"} ,{"reboot", "backplane"} ,{"backplane","abort"} };
+    std::string input;
+    while (getline(cin, input)) {
+        auto ret = input.find(' ');
+        std::string s1, s2;
+        int word_cnt = 0;
+        if (ret == string::npos) {
+            s1 = input;
+            word_cnt = 1;
+        }
+        else {
+            s1 = input.substr(0, ret);
+            int l = s1.length();
+            s2 = input.substr(ret + 1, l - ret - 1);
+            word_cnt = 2;
+        }
+        int find_cnt = 0;
+        int find_index = -1;
+        for (int i = 0; i < cmd.size(); i++) {
+            if (word_cnt != cmd[i].size())
+                continue;
+            if (word_cnt == 2) {
+                if (cmd[i][0].find(s1) == 0 && cmd[i][1].find(s2) == 0) {
+                    find_cnt++;
+                    find_index = i;
+                }
+            }
+            else if (word_cnt == 1) {
+                if (cmd[i][0].find(s1) == 0) {
+                    find_cnt++;
+                    find_index = i;
+                }
+            }
+        }
+        if (find_cnt == 1) {
+            if (word_cnt == 1)
+                std::cout << cmd_exec[cmd[find_index][0]] << endl;
+            else {
+                std::cout << cmd_exec[cmd[find_index][0] + " " + cmd[find_index][1]] << endl;
+            }
+        }
+
+        if (find_cnt == 0 || find_cnt > 1)
+            std::cout << "unknown command" << endl;
+    }
+}
+
+
 void common_substring(){
     std::string s1,s2;
     while(cin >> s1 >> s2){
