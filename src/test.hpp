@@ -8,6 +8,289 @@
 using namespace std;
 
 
+//void print_money(){
+//    //151121.15
+//
+//    //壹、贰、叁、肆、伍、陆、柒、捌、玖、拾、 佰、仟、万、亿、元、角、分、零、整
+//    vector<string> num{"零","壹","贰","叁","肆","伍","陆","柒","捌","玖"};
+//    vector<string> unit{"","拾","佰","仟","万","拾","佰","仟","亿","拾","佰","仟","万",};
+//
+//    string s;
+//    while(cin>>s){
+//        int tag = s.find('.');
+//        int l = s.length();
+//        string prefix = s.substr(0,tag);
+//        string suffix = s.substr(tag + 1,l - tag);
+//        int l1 = prefix.length();
+//        string output1;
+//        int offset = 0;
+//        for(int i = l1 - 1;i >= 0;i--){
+//            int n = prefix[i] - '0';
+//
+//            int idx = offset % 12;
+//            output1 = num[n] + unit[idx] + output1;
+//
+//            offset++;
+//        }
+//        string output2;
+//        if(suffix == "00"){
+//            output2 += "整";
+//        }else{
+//            if(suffix[0] == '0'){
+//                output2 += "零";
+//            }else{
+//                output2 += num[suffix[0] - '0'] + "角";
+//            }
+//            if(suffix[1] != '0'){
+//                output2 += num[suffix[1] - '0'] + "分";
+//            }
+//        }
+//        output1 = "人民币" + output1 +"元";
+//        std::cout<<output1<<output2<<endl;
+//    }
+//}
+
+
+int recursive_calc2(string s){
+    stack<int> st;
+    int l = s.length();
+    int i = 0;
+    char pre_opt = '+';
+    int pre_num = 0;
+    while(i < l){
+        while(i < l && isdigit(s[i])){
+            pre_num *= 10;
+            pre_num += s[i] - '0';
+            i++;
+        }
+        if(s[i] == '(' || s[i] == '[' || s[i] == '{'){
+            char find_tag = 0;
+            if(s[i] == '('){
+                find_tag = ')';
+            }else if(s[i] == '['){
+                find_tag = ']';
+            }else if(s[i] == '{'){
+                find_tag = '}';
+            }
+            int j = i + 1;
+            int cnt = 1;
+            while(j < l){
+                if(s[j] == s[i]){
+                    cnt++;
+                }else if(s[j] == find_tag){
+                    cnt--;
+                }
+                if(cnt == 0)
+                    break;
+                j++;
+            }
+            int ret = recursive_calc2(s.substr(i + 1,j - i - 1));
+            if(pre_opt == '+'){
+                st.push(ret);
+            }else if(pre_opt == '-'){
+                st.push(-ret);
+            }else if(pre_opt == '*'){
+                int val = st.top() * ret;
+                st.pop();
+                st.push(val);
+            }else if(pre_opt == '/'){
+                int val = st.top() / ret;
+                st.pop();
+                st.push(val);
+            }
+            i = j + 1;
+            if(i < l){
+                pre_opt = s[i];
+                i++;
+            }
+        }else{
+            if(i != 0){
+                if(pre_opt == '+'){
+                    st.push(pre_num);
+                }else if(pre_opt == '-'){
+                    st.push(-pre_num);
+                }else if(pre_opt == '*'){
+                    int val = st.top() * pre_num;
+                    st.pop();
+                    st.push(val);
+                }else if(pre_opt == '/'){
+                    int val = st.top() / pre_num;
+                    st.pop();
+                    st.push(val);
+                }
+                pre_num = 0;
+            }
+            pre_opt = s[i];
+            i++;
+        }
+    }
+    if(pre_num != 0){
+        if(pre_opt == '+'){
+            st.push(pre_num);
+        }else if(pre_opt == '-'){
+            st.push(-pre_num);
+        }else if(pre_opt == '*'){
+            int val = st.top() * pre_num;
+            st.pop();
+            st.push(val);
+        }else if(pre_opt == '/'){
+            int val = st.top() / pre_num;
+            st.pop();
+            st.push(val);
+        }
+    }
+    int sum = 0;
+    while (!st.empty()){
+        sum += st.top();
+        st.pop();
+    }
+    return sum;
+}
+
+void calc2(){
+    string s;
+    while(cin >> s){
+        int res = recursive_calc2(s);
+        std::cout<<res<<endl;
+    }
+}
+
+
+void money_rate(){
+    //1CNY=100fen（1元=100分）
+    //1HKD=100cents（1港元=100港分）
+    //1JPY=100sen（1日元=100仙）
+    //1EUR=100eurocents（1欧元=100欧分）
+    //1GBP=100pence（1英镑=100便士）
+
+    //CNY	JPY	HKD	EUR	GBP
+    //100	1825	123	14	12
+    int n = 0;
+    map<string,double> m;
+    m["CNY"] = 100.0;
+    m["JPY"] = 1825.0;
+    m["HKD"] = 123.0;
+    m["EUR"] = 14.0;
+    m["GBP"] = 12.0;
+
+    set<string> s_big{"CNY","JPY","HKD","EUR","GBP"};
+    set<string> s_small{"fen","sen","cents","eurocents","pence"};
+
+    map<string,double> m2;
+    m2["fen"] = 100.0;
+    m2["sen"] = 1825.0;
+    m2["cents"] = 123.0;
+    m2["eurocents"] = 14.0;
+    m2["pence"] = 12.0;
+    while(cin>>n){
+        double sum = 0;
+        for(int i = 0;i < n;i++){
+            string s;
+            cin >> s;
+            string s_num;
+            string s_unit;
+            int l = s.length();
+            double big_num = 0;
+            double small_num = 0;
+            for(auto it :s_big){
+                int ret = s.find(it);
+                if(ret != string::npos){
+                    big_num = stoi(s.substr(0,ret));
+                    big_num = big_num * double(100)/ double(m[it]) * 100;
+                    break;
+                }
+            }
+            for(auto it : s_small){
+                int ret = s.find(it);
+                if(ret != string::npos){
+                    int find_idx = ret - 1;
+                    while(find_idx >= 0){
+                        if(!isdigit(s[find_idx])){
+                            break;
+                        }
+                        find_idx--;
+                    }
+                    small_num = stoi(s.substr(find_idx + 1,ret));
+                    small_num = small_num * double(100)/ double(m2[it]);
+                    break;
+                }
+            }
+            sum += big_num + small_num;
+        }
+        std::cout<<int(sum)<<endl;
+    }
+}
+
+void divide_group(){
+    int n;
+    while(cin >> n){
+        if(n == 1){
+            int only = 0;
+            cin >> only;
+            if(only == 0)
+                std::cout<<"true"<<endl;
+            else
+                std::cout<<"true"<<endl;
+            continue;
+        }
+
+        std::vector<int> v;
+        for(int i = 0;i < n;i++){
+            int n2 = 0;
+            cin>>n2;
+            v.push_back(n2);
+        }
+        //vector<int> five;
+        vector<int> other;
+        int sum_five = 0;
+        int sum_three = 0;
+        int sum_other = 0;
+        for(auto i : v){
+            if(i % 5 == 0){
+                sum_five += i;
+            }else if(i % 3 == 0){
+                sum_three += i;
+            }else{
+                sum_other += i;
+                other.push_back(i);
+            }
+        }
+        int diff = abs(sum_five - sum_three);
+        if(diff == sum_other){
+            std::cout<<"true"<<endl;
+            continue;
+        }
+        //枚举所有和的可能行，能使得 abs(sum_other - cur_sum * 2) == diff
+        unordered_set<int> s;
+        bool find = false;
+        for(int i = 0;i < other.size();i++){
+            unordered_set<int> s2;
+            s2.insert(other[i]);
+            if(abs(sum_other - other[i] * 2) == diff){
+                find = true;
+                break;
+            }
+            for(auto it : s){
+                int cur_sum = it + other[i];
+                if(abs(sum_other - cur_sum * 2)  == diff){
+                    find = true;
+                    break;
+                }
+                s2.insert(cur_sum);
+            }
+            for(auto it : s2){
+                s.insert(it);
+            }
+            if(find)
+                break;
+        }
+        if(find)
+            std::cout<<"true"<<endl;
+        else
+            std::cout<<"false"<<endl;
+    }
+}
+
 void walk_step(){
     //6
     //2 5 1 5 4 5
