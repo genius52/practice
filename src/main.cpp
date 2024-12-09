@@ -15,7 +15,6 @@ using namespace std;
 
 
 int main() {
-    maza_express();
+
     return 0;
 }
-

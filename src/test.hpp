@@ -8,6 +8,323 @@
 using namespace std;
 
 
+void walk_step(){
+    //6
+    //2 5 1 5 4 5
+    int n = 0;
+    while(cin>> n){
+        vector<int> height;
+        for(int i = 0;i < n;i++){
+            int h;
+            cin>> h;
+            height.push_back(h);
+        }
+        //sort(height.begin(),height.end());
+        vector<int> dp(n,1);
+        int max_len = 1;
+        for(int i = 1;i < n;i++){
+            for(int j = i - 1;j >= 0;j--){
+                if(height[i] > height[j]){
+                    dp[i] = max(dp[i],1 + dp[j]);
+                    max_len = max(max_len,dp[i]);
+                }
+            }
+        }
+        std::cout<<max_len<<endl;
+    }
+}
+
+void longest_numstring(){
+    //abcd12345ed125ss123058789
+    //a8a72a6a5yy98y65ee1r2
+    string input;
+    while(cin>>input){
+        int l = input.length();
+        int left = -1;
+        int max_len = 0;
+        vector<string> v;
+        for(int i = 0;i < l;i++){
+            if(input[i] >= '0' && input[i] <= '9'){
+                if(left == -1){
+                    left = i;
+                }
+            }else{
+                if(left != -1){
+                    int cur_len = i - left;
+                    if(cur_len > max_len){
+                        max_len = cur_len;
+                        v = {input.substr(left,cur_len)};
+                    }else if(cur_len == max_len){
+                        v.push_back(input.substr(left,cur_len));
+                    }
+                    left = -1;
+                }
+            }
+        }
+        if(left != -1){
+            int cur_len = l - left;
+            if(cur_len > max_len){
+                max_len = cur_len;
+                v = {input.substr(left,cur_len)};
+            }else if(cur_len == max_len){
+                v.push_back(input.substr(left,cur_len));
+            }
+        }
+        for(int i = 0;i < v.size();i++){
+            std::cout<<v[i];
+        }
+        std::cout<<","<<max_len<<endl;
+    }
+}
+
+
+void ip_addr(){
+    //255.255.255.1000
+    std::string input;
+    while(getline(cin,input)){
+        if(input.find('.') == string::npos || input.find(' ') != string::npos){
+            std::cout<<"NO"<<endl;
+            continue;
+        }
+        stringstream ss(input);
+        string s_num;
+        bool find = true;
+        int cnt = 0;
+        while(getline(ss,s_num,'.')){
+            try{
+                for(auto c : s_num){
+                    if(!isdigit(c)){
+                        find = false;
+                        break;
+                    }
+                }
+                if(!find)
+                    break;
+                if(s_num.length() > 1 && s_num[0] == '0'){
+                    find = false;
+                    break;
+                }
+                int ret = stoi(s_num);
+                string check = to_string(ret);
+                if(s_num != check){
+                    find = false;
+                    break;
+                }
+                cnt++;
+                if(ret >= (1 << 8) || ret < 0){
+                    find = false;
+                    break;
+                }
+            }catch (exception ex){
+                find = false;
+                break;
+            }
+        }
+        if(cnt != 4){
+            find = false;
+        }
+        if(find)
+            std::cout<<"YES"<<endl;
+        else{
+            std::cout<<"NO"<<endl;
+        }
+    }
+}
+
+void compare_poker(){
+    string input;
+    map<std::string,int> m{{"3",3},{"4",4},{"5",5 },{"6",6},{"7",7},{"8",8},{"9", 9},
+                           {"10",10},{"J",11},{"Q",12},{"K",13},{"A",1},{"2",2},{"joker",20},{"JOKER",30}};
+    while(getline(cin,input)){
+        int tag = input.find('-');
+        string s1 = input.substr(0,tag);
+        string s2 = input.substr(tag + 1,input.length() - tag);
+        int space1 = 0;
+        int space2 = 0;
+        for(auto c : s1){
+            if(c == ' '){
+                space1++;
+            }
+        }
+        for(auto c : s2){
+            if(c == ' '){
+                space2++;
+            }
+        }
+        if(space1 != space2){
+            if(s1.find("JOKER") != string::npos && s1.find("joker") != string::npos){
+                std::cout<<s1<<endl;
+            }else if(s2.find("JOKER") != string::npos && s2.find("joker") != string::npos){
+                std::cout<<s2<<endl;
+            }else{
+                if(space1 == 3){
+                    std::cout<<s1<<endl;
+                }else if(space2 == 3){
+                    std::cout<<s2<<endl;
+                }else{
+                    std::cout<<"ERROR"<<endl;
+                }
+            }
+        }else{
+            //个数一样是同类型的牌，不会有杂牌
+            s1 += " ";
+            s2 += " ";
+            int score1 = m[s1.substr(0,s1.find(' '))];
+            int score2 = m[s2.substr(0,s2.find(' '))];
+            if(score1 > score2){
+                std::cout<<s1<<endl;
+            }else{
+                std::cout<<s2<<endl;
+            }
+        }
+    }
+}
+
+double cal_24(double n1,double n2,string opt){
+    if(opt == "+"){
+        return n1 + n2;
+    }else if(opt == "-"){
+        return n1 - n2;
+    }else if(opt == "*"){
+        return n1 * n2;
+    }else if(opt == "/"){
+        return n1/n2;
+    }
+    return 0;
+}
+
+void poker24(){
+    map<string,double> m{{"A",1},{"2",2},{"3",3},{"4",4},{"5",5},
+                         {"6",6},{"7",7},{"8",8},{"9",9},{"10",10},
+                         {"J",11},{"Q",12},{"K",13}};
+    map<double,string> m_reverse{{1,"A"},{2,"2"},{3,"3"},{4,"4"},{5,"5"},
+                                 {6,"6"},{7,"7"},{8,"8"},{9,"9"},{10,"10"},
+                                 {11,"J"},{12,"Q"},{13,"K"}};
+    string opt[4] ={"+","-","*","/"};
+    string n1,n2,n3,n4;
+    while(cin >>n1 >> n2>>n3>>n4){
+        if(n1 == "joker" || n1 == "JOKER" || n2 == "joker" || n2 == "JOKER" ||
+           n3 == "joker" || n3 == "JOKER" || n4 == "joker" || n4 == "JOKER"){
+            std::cout<<"ERROR";
+            continue;
+        }
+        std::vector<double> nums{m[n1],m[n2],m[n3],m[n4]};
+        for(int i = 0;i < 4;i++){
+            for(int j = 0;j < 4;j++){
+                if(i == j)
+                    continue;
+                for(const auto & opt_1 : opt){
+                    double ret1 = cal_24(nums[i],nums[j],opt_1);
+                    for(int m = 0;m < 4;m++){
+                        if(m == i || m == j)
+                            continue;
+                        for(const auto & opt_2 : opt){
+                            double ret2 = cal_24(ret1,nums[m],opt_2);
+                            for(int n = 0;n < 4;n++){
+                                if( n == m || n == i || n == j)
+                                    continue;
+                                for(const auto & opt_3 : opt){
+                                    double ret3 = cal_24(ret2,nums[n],opt_3);
+                                    if(abs(ret3 - 24) < 0.001){
+                                        std::cout<<m_reverse[nums[i]] <<opt_1<<m_reverse[nums[j]] << opt_2<<m_reverse[nums[m]] << opt_3<<m_reverse[nums[n]]<<endl;
+                                        return;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        std::cout<<"NONE"<<endl;
+    }
+}
+
+void dfs_train(vector<int>& in,int idx,int n,std::stack<int>& st,std::vector<int>& leave,std::vector<std::vector<int>>& res){
+    if(leave.size() == n){
+        res.push_back(leave);
+    }else{
+        //出站
+        if(!st.empty()){
+            //auto leave2 = leave;
+            int tmp = st.top();
+            leave.push_back(st.top());
+            st.pop();
+            dfs_train(in,idx,n,st,leave,res);
+            st.push(tmp);
+            leave.pop_back();
+        }
+        //进站
+        if(idx < n){
+            st.push(in[idx]);
+            dfs_train(in,idx + 1,n,st,leave,res);
+            st.pop();
+        }
+    }
+}
+
+void train(){
+    int n = 0;
+    while(cin >> n){
+        //std::vector<int> v(n);
+        vector<int> in;
+        for(int i = 0;i < n;i++){
+            //cin >> v[i];
+            int train;
+            cin >> train;
+            in.push_back(train);
+        }
+        std::vector<std::vector<int>> res;
+        std::stack<int> station;
+        std::vector<int> leave;
+        dfs_train(in,0,n,station,leave,res);
+        sort(res.begin(),res.end());
+        for(int i = 0;i < res.size();i++){
+            for(int j = 0;j < res[i].size();j++){
+                if(j != 0)
+                    std::cout<<" ";
+                std::cout << res[i][j];
+            }
+            std::cout<<std::endl;
+        }
+    }
+}
+
+
+void longest_substr(){
+    string s1,s2;
+    while(cin >> s1 >> s2){
+        int l1 = s1.length();
+        int l2 = s2.length();
+        if(l1 == 0 || l2 == 0){
+            std::cout<< 0<<endl;
+            continue;
+        }
+        vector<vector<int>> dp(l1,vector<int>(l2));//dp[i][j]:最大公共长度
+        int max_len = 0;
+        for(int i = 0;i < l1;i++){
+            if(s1[i] == s2[0]){
+                dp[i][0] = 1;
+                max_len = 1;
+            }
+        }
+        for(int j = 0;j < l2;j++){
+            if(s1[0] == s2[j]){
+                dp[0][j] = 1;
+                max_len = 1;
+            }
+        }
+        for(int i = 1;i < l1;i++){
+            for(int j = 1;j < l2;j++){
+                if(s1[i] == s2[j]){
+                    dp[i][j] = 1 + dp[i - 1][j - 1];
+                    max_len = max(max_len,dp[i][j]);
+                }
+            }
+        }
+        std::cout<< max_len<<endl;
+    }
+}
 
 //5
 //23 61
