@@ -8,6 +8,1526 @@
 using namespace std;
 
 
+void find101(){
+    int n1,n2;
+    while(cin >>n1 >> n2){
+        int cnt = 0;
+        for(int i = n1;i <= n2;i++){
+            bitset<32> b(i);
+            string s = b.to_string();
+            if(s.find("101") == string::npos){
+                cnt++;
+            }
+        }
+        std::cout<<cnt<<endl;
+    }
+}
+
+int union_find(int cur,vector<int>& groups){
+    if(groups[cur] != cur){
+        return union_find(groups[cur],groups);
+    }
+    return cur;
+}
+
+void linux_version(){
+    int n = 0;
+    while(cin >> n){
+        vector<vector<int>> v(n,vector<int>(n));
+        for(int i = 0;i < n;i++){
+            for(int j = 0;j < n;j++){
+                cin >> v[i][j];
+            }
+        }
+        vector<int> groups(n);
+        for(int i = 0;i < n;i++){
+            groups[i] = i;
+        }
+        for(int i = 0;i < n;i++){
+            for(int j = 0;j < n;j++){
+                if(i == j)
+                    continue;
+                if(v[i][j] == 0)
+                    continue;
+                int group1 = union_find(i,groups);
+                int group2 = union_find(j,groups);
+                if(group1 != group2){
+                    groups[group2] = group1;
+                }
+            }
+        }
+        unordered_map<int,int> m;
+        int max_cnt = 0;
+        for(int i = 0;i < n;i++){
+            m[groups[i]]++;
+            if(m[groups[i]] > max_cnt)
+                max_cnt = m[groups[i]];
+        }
+
+        std::cout<<max_cnt<<endl;
+    }
+}
+
+void max_profit(){
+    //第一行输入商品的数量number。
+    //第二行输入商品售货天数days。
+    //第三行输入仓库限制每件商品的最大持有数量是 item[index]。 以下numbers行，输入每件商品每天的价格。
+    //每种商品每天的价格是item-price[item_index][day]
+    int cnt = 0;
+    int days = 0;
+    while(cin >> cnt >> days){
+        vector<int> max_limit(cnt);
+        vector<vector<int>> day_price(days,vector<int>(cnt));
+        for(int i = 0;i < cnt;i++){
+            cin>>max_limit[i];
+        }
+        for(int i = 0;i < cnt;i++){
+            for(int j = 0;j < days;j++){
+                cin >> day_price[i][j];
+            }
+        }
+        int res = 0;
+        for(int i = 0;i < cnt;i++){
+            int profit = 0;
+            for(int j = 1;j < days;j++){
+                if(day_price[i][j] > day_price[i][j - 1]){
+                    profit += (day_price[i][j] - day_price[i][j - 1]) * max_limit[i];
+                }
+            }
+            res += profit;
+        }
+        std::cout<< res << endl;
+    }
+}
+
+void choose_hotel(){
+    //第一行是n、k、x，n表示在网上搜索的酒店数量，x表示心理价位，k表示最接近心理价位的酒店个数。
+    //第二行是n个酒店的价格数组A[0] A[1] A[2]...A[n-1]
+    int total,price,cnt;
+    while(cin >> total >> cnt >>price){
+        vector<int> v(total);
+        for(int i = 0;i < total;i++){
+            cin >> v[i];
+        }
+        v.push_back(price);
+        sort(v.begin(),v.end());
+        int idx = 0;
+        while(v[idx] != price){
+            idx++;
+        }
+        int left = idx - 1;
+        int right = idx + 1;
+        int l = v.size();
+        vector<int> res;
+        while(left >= 0 && right < l && res.size() < cnt){
+            if(v[idx] - v[left] <= v[right] - v[idx]){
+                res.push_back(v[left]);
+                left--;
+            }else{
+                res.push_back(v[right]);
+                right++;
+            }
+        }
+        while(res.size() < cnt){
+            if(left > 0){
+                res.push_back(v[left]);
+                left--;
+            }
+            if(right < l){
+                res.push_back(v[right]);
+                right++;
+            }
+        }
+        sort(res.begin(),res.end());
+        for(int i = 0;i < res.size();i++){
+            if(i != 0)
+                cout<< " ";
+            std::cout<<res[i];
+        }
+    }
+}
+
+void report_cost(){
+    int cache_cost = 0;
+    while(cin >> cache_cost){
+        cin.ignore();
+        string line1,line2;
+        getline(cin,line1);
+        getline(cin,line2);
+        stringstream ss1(line1);
+        stringstream ss2(line2);
+        int idx = 0;
+        int num = 0;
+        vector<int> nums;
+        while(ss1 >>num){
+            nums.push_back(num);
+            idx++;
+        }
+        vector<int> costs;
+        int cost;
+        while(ss2 >> cost){
+            costs.push_back(cost);
+        }
+        unordered_map<int,pair<int,int>> idx_cnt;
+        for(int i = 0;i < nums.size();i++){
+            idx_cnt[nums[i]].first++;
+            idx_cnt[nums[i]].second = costs[i];
+        }
+        int res = 0;
+        for(auto it : idx_cnt){
+            int all_print_cost = it.second.first * it.second.second;
+            int print_cache = it.second.second + cache_cost;
+            res += min(all_print_cost,print_cache);
+        }
+        std::cout<<res<<endl;
+    }
+}
+
+void errorcode(){
+    int n = 0;
+    while(cin >> n){
+        vector<int> v(n);
+        for(int i = 0;i < n;i++){
+            cin >> v[i];
+        }
+        int max_freq = 0;
+        unordered_map<int,int> cnt;
+        for(int i = 0;i < n;i++){
+            cnt[v[i]]++;
+            if(cnt[v[i]] > max_freq){
+                max_freq = cnt[v[i]];
+            }
+        }
+        unordered_set<int> s;
+        for(auto it : cnt){
+            if(it.second == max_freq){
+                s.insert(it.first);
+            }
+        }
+        int min_len = n;
+        for(auto it : s){
+            int left = 0;
+            int right = n - 1;
+            while(v[left] != it){
+                left++;
+            }
+            while(v[right] != it){
+                right--;
+            }
+            int cur_len = right - left + 1;
+            if(cur_len < min_len)
+                min_len = cur_len;
+        }
+        std::cout<< min_len <<endl;
+    }
+}
+
+void perfect_move(){
+    string line;
+    while(cin>>line){
+        int l = line.length();
+        int a_cnt = 0;
+        int d_cnt = 0;
+        int w_cnt = 0;
+        int s_cnt = 0;
+        for(int i = 0;i < l;i++){
+            if(line[i] == 'A'){
+                a_cnt++;
+            }else if(line[i] == 'D'){
+                d_cnt++;
+            }else if(line[i] == 'W'){
+                w_cnt++;
+            }else if(line[i] == 'S'){
+                s_cnt++;
+            }
+        }
+        if(a_cnt == d_cnt == w_cnt == s_cnt){
+            std::cout<< 0<<endl;
+        }else{
+            int target = l /4;
+            int res = 0;
+            if(a_cnt > target){
+                res += a_cnt - target;
+            }
+            if(d_cnt > target){
+                res += d_cnt - target;
+            }
+            if(w_cnt > target){
+                res += w_cnt - target;
+            }
+            if(s_cnt > target){
+                res += s_cnt - target;
+            }
+            std::cout<<res<<endl;
+        }
+    }
+}
+
+void version_cmp(){
+    string line1,line2;
+    while(getline(cin,line1) && getline(cin,line2)){
+        int l1 = line1.length();
+        int l2 = line2.length();
+        string tmp1,tmp2;
+        vector<string> v1,v2;
+        for(int i = 0;i < l1;i++){
+            if(line1[i] != '.'){
+                tmp1.push_back(line1[i]);
+            }else{
+                v1.push_back(tmp1);
+                tmp1.clear();
+            }
+        }
+        v1.push_back(tmp1);
+        string res;
+        for(int i = 0;i < l2;i++){
+            if(line2[i] != '.'){
+                tmp2.push_back(line2[i]);
+            }else{
+                v2.push_back(tmp2);
+                tmp2.clear();
+            }
+        }
+        v2.push_back(tmp2);
+        int len1 = v1.size();
+        int len2 = v2.size();
+        for(int i = 0;i < max(len1,len2);i++){
+            if(i >= v1.size()){
+                std::cout<< line2<<endl;
+                break;
+            }
+            if(i >= v2.size()){
+                std::cout<< line1<<endl;
+                break;
+            }
+            if(i == max(len1,len2) - 1){
+                int idx1 = v1[i].find('-');
+                int idx2 = v2[i].find('-');
+                if(idx1 == string::npos && idx2 == string::npos){
+                    int n1 = stoi(v1[i]);
+                    int n2 = stoi(v2[i]);
+                    if(n1 >= n2){
+                        std::cout<< line1 <<endl;
+                    }else{
+                        std::cout<< line2 <<endl;
+                    }
+                }else{
+                    string sub1 = v1[i].substr(idx1 + 1,v1[i].size() - idx1 - 1);
+                    string sub2 = v2[i].substr(idx2 + 1,v2[i].size() - idx2 - 1);
+                    if(sub1 >= sub2){
+                        std::cout<< line1<<endl;
+                    }else{
+                        std::cout<< line2<<endl;
+                    }
+                }
+            }else{
+                int n1 = stoi(v1[i]);
+                int n2 = stoi(v2[i]);
+                if(n1 == n2)
+                    continue;
+
+                if(n1 >= n2){
+                    std::cout<< line1 <<endl;
+                }else{
+                    std::cout<< line2 <<endl;
+                }
+                break;
+            }
+        }
+    }
+}
+
+void pixel(){
+    string line;
+    while(getline(cin,line)){
+        stringstream ss(line);
+        vector<int> v;
+        int sum = 0;
+        string s;
+        while(getline(ss, s,' ')){
+            v.push_back(stoi(s));
+            sum += stoi(s);
+        }
+        int l = v.size();
+        double cur_aver = double(sum) / (double)l;
+        int increase = 0;
+
+        if(cur_aver == 128){
+            std::cout<< 0<<endl;
+        }else if(cur_aver < 128){
+            int k = 0;
+            while(cur_aver <= 128){
+                k++;
+                int new_aver = double(sum + l * k)/double(l);
+                if(abs(128 - new_aver) > abs(128 - cur_aver)){
+                    k--;
+                    break;
+                }else{
+                    cur_aver = new_aver;
+                }
+            }
+            std::cout<<k<<endl;
+        }else if(cur_aver >= 128){
+            int k = 0;
+            while(cur_aver >= 128){
+                k--;
+                int new_aver = double(sum + l * k)/double(l);
+                if(abs(128 - new_aver) > abs(128 - cur_aver)){
+                    break;
+                }else{
+                    cur_aver = new_aver;
+                }
+            }
+            std::cout<<k<<endl;
+        }
+    }
+}
+
+pair<double,int> opt_1092(double value,int p10,int p92,int p5){
+    int used_cnt = 0;
+    double cur_value = value;
+    if(value >= 100){
+        int can_use = min(p10,int(cur_value/100));
+        used_cnt += can_use;
+        cur_value -= can_use * 10;
+    }
+    if(p92 > 0){
+        used_cnt++;
+        cur_value *= 0.92;
+    }
+    return {cur_value,used_cnt};
+}
+
+pair<double,int> opt_105(double value,int p10,int p92,int p5){
+    int used_cnt = 0;
+    double cur_value = value;
+    if(value >= 100){
+        int can_use = min(p10,int(cur_value/100));
+        used_cnt += can_use;
+        cur_value -= can_use * 10;
+    }
+    if(p5 > 0){
+        int can_use = min(p5,int(cur_value)/ 5);
+        used_cnt += can_use;
+        cur_value -= can_use * 5;
+    }
+    return {cur_value,used_cnt};
+}
+
+pair<double,int> opt_925(double value,int p10,int p92,int p5){
+    int used_cnt = 0;
+    double cur_value = value;
+    if(p92 > 0){
+        used_cnt++;
+        cur_value *= 0.92;
+    }
+    if(p5 > 0){
+        int can_use = min(p5,int(cur_value)/ 5);
+        used_cnt += can_use;
+        cur_value -= can_use * 5;
+    }
+    return {cur_value,used_cnt};
+}
+
+pair<double,int> opt_9210(double value,int p10,int p92,int p5){
+    int used_cnt = 0;
+    double cur_value = value;
+    if(p92 > 0){
+        used_cnt++;
+        cur_value *= 0.92;
+    }
+    if(value >= 100){
+        int can_use = min(p10,int(cur_value/100));
+        used_cnt += can_use;
+        cur_value -= can_use * 10;
+    }
+    return {cur_value,used_cnt};
+}
+
+pair<double,int> opt_592(double value,int p10,int p92,int p5){
+    int used_cnt = 0;
+    double cur_value = value;
+    if(p5 > 0){
+        int can_use = min(p5,int(cur_value)/ 5);
+        used_cnt += can_use;
+        cur_value -= can_use * 5;
+    }
+    if(p92 > 0){
+        used_cnt++;
+        cur_value *= 0.92;
+    }
+    return {cur_value,used_cnt};
+}
+
+pair<double,int> opt_510(double value,int p10,int p92,int p5){
+    int used_cnt = 0;
+    double cur_value = value;
+    if(p5 > 0){
+        int can_use = min(p5,int(cur_value)/ 5);
+        used_cnt += can_use;
+        cur_value -= can_use * 5;
+    }
+    if(value >= 100){
+        int can_use = min(p10,int(cur_value/100));
+        used_cnt += can_use;
+        cur_value -= can_use * 10;
+    }
+    return {cur_value,used_cnt};
+}
+
+void shopping(){
+    //第一行：每个人拥有的优惠券数量（数量取值范围为[0, 10]），按满减、打折、无门槛的顺序输入。 第二行：表示购物的人数n（1 <= n <= 10000）。
+    //最后n行：每一行表示某个人优惠前的购物总价格（价格取值范围(0, 1000]，都为整数）。
+    //约定：输入都是符合题目设定的要求的。
+    //每行输出每个人每次购物优惠后的最低价格以及使用的优惠券总数量，每行的输出顺序和输入的顺序保持一致。
+    int p10,p92,p5;
+    while(cin >> p10 >> p92 >> p5){
+        int people = 0;
+        cin >> people;
+        vector<int> v(people);
+        for(int i = 0;i < people;i++){
+            cin >> v[i];
+        }
+        vector<std::function<pair<double,int>(double value,int p10,int p92,int p5)>> vf{opt_1092,opt_105, opt_510,
+                                                                                        opt_592, opt_9210, opt_925};
+        for(int i = 0;i < v.size();i++){
+            int min_value = v[i];
+            int min_used_cnt = p10 + p92 + p5;
+            for(int j = 0;j < vf.size();j++){
+                std::pair<double,int> p = vf[j](v[i],p10,p92,p5);
+                if(static_cast<int>(p.first) < min_value){
+                    min_value = p.first;
+                    min_used_cnt = p.second;
+                }else if(static_cast<int>(p.first) == min_value){
+                    min_used_cnt = min(min_used_cnt,p.second);
+                }
+            }
+            std::cout<< min_value << " "<<min_used_cnt<<endl;
+
+        }
+    }
+}
+
+void setbox(){
+//AFG
+//BE
+//CD
+    string s;
+    int width = 0;
+    while(cin >> s >> width){
+        vector<vector<char>> v(width);
+        int l = s.length();
+        for(int i = 0;i < l;i++){
+            int idx = i % width;
+            v[idx].push_back(s[i]);
+        }
+        for(int i = 0;i < width;i++){
+            for(int j = 0;j < v[i].size();j++){
+                std::cout<< v[i][j];
+            }
+            if(i != width - 1)
+                std::cout<<endl;
+        }
+    }
+}
+
+//端口合并
+void merge_port(){
+    int n = 0;
+    while (cin >> n){
+        cin.ignore();
+        vector<set<string>> v(n);
+        for(int i = 0;i < n;i++){
+            string line;
+            getline(cin,line);
+            if(line.find(',') != string::npos){
+                stringstream ss(line);
+                string port;
+                while (getline(ss,port,',')){
+                    v[i].insert(port);
+                }
+            }else{
+                v[i].insert(line);
+            }
+        }
+        bool merge = true;
+        while(merge) {
+            merge = false;
+            for (int i = 0; i < v.size(); i++) {
+                if (v[i].size() <= 1)
+                    continue;
+                for (int j = 0; j < v.size(); j++) {
+                    if (i == j) {
+                        continue;
+                    }
+                    if (v[j].size() <= 1)
+                        continue;
+                    int same_cnt = 0;
+                    for (auto it1 = v[i].cbegin(); it1 != v[i].end(); it1++) {
+                        if (v[j].find(*it1) != v[j].end()) {
+                            same_cnt++;
+                            if (same_cnt >= 2)
+                                break;
+                        }
+                    }
+                    if (same_cnt >= 2) {
+                        for (auto it2 = v[j].cbegin(); it2 != v[j].cend(); it2++) {
+                            v[i].insert(*it2);
+                        }
+                        merge = true;
+                        v.erase(v.begin() + j);
+                    }
+                }
+            }
+        }
+        std::cout<<"[";
+        for(int i = 0;i < v.size();i++){
+            if(i != 0)
+                cout<<",";
+            std::cout<<"[";
+            for(auto it = v[i].begin();it != v[i].end();it++){
+                if(it != v[i].begin())
+                    cout<<",";
+                cout<<*it;
+            }
+            std::cout<<"]";
+        }
+        std::cout<<"]";
+    }
+}
+
+void ride_bicycle(){
+    int n ,m;
+    while(cin>> m >> n){
+        vector<int> v(n);
+        for(int i = 0;i < n;i++){
+            cin >> v[i];
+        }
+        sort(v.begin(),v.end());
+        int left = 0;
+        int right = n - 1;
+        int cnt = 0;
+        while(left < right){
+            if(v[left]+v[right] <= m){
+                cnt++;
+                left++;
+                right--;
+            }else{
+                cnt++;
+                right--;
+            }
+        }
+        if(left == right)
+            cnt++;
+        std::cout<<cnt<<endl;
+    }
+}
+
+void new_word(){
+    string s1,s2;
+    while(cin >> s1 >> s2){
+        int l1 = s1.length();
+        int l2 = s2.length();
+        if(l1 < l2){
+            std::cout<<0<<endl;
+            continue;
+        }
+        int left = 0;
+        int cnt1[26] = {};
+        int cnt2[26]={};
+        for(int i = 0;i < l2;i++){
+            cnt1[s1[i] - 'a']++;
+        }
+        for(auto c : s2){
+            cnt2[c - 'a']++;
+        }
+        int res = 0;
+        while((left + l2) <= l1){
+            int meet = true;
+            for(int i = 0;i < 26;i++){
+                if(cnt1[i] != cnt2[i]){
+                    meet = false;
+                    break;
+                }
+            }
+            if(meet)
+                res++;
+            cnt1[s1[left] - 'a']--;
+            if(left + l2 < l1){
+                cnt1[s1[left + l2] - 'a']++;
+            }
+            left++;
+        }
+        std::cout<<res<<endl;
+    }
+}
+
+void guess_number_game(){
+    int n;
+    while(cin >> n){
+        vector<int> v(n);
+        for(int i = 0;i < n;i++){
+            cin >> v[i];
+        }
+        unordered_map<int,int> m;
+        int max_dis = -1;
+        for(int i = 0;i < n;i++){
+            if(m.find(v[i]) != m.end()){
+                max_dis = max(max_dis,i - m[v[i]]);
+            }else{
+                m[v[i]] = i;
+            }
+        }
+        std::cout<<max_dis<<endl;
+    }
+}
+
+void check_queue(){
+    //tail add 4
+    //head add 5
+    //remove
+    int n = 0;
+    while(cin >> n){
+        cin.ignore();
+        deque<int> q;
+        int delete_num = 1;
+        int opt_cnt = 0;
+        for(int i = 0;i < n * 2;i++){
+            string line;
+            getline(cin,line);
+            if(line.find("remove") != string::npos){
+                if(q.front() == delete_num){
+                    q.pop_front();
+                }else{
+                    std::vector<int> v;
+                    while(!q.empty()){
+                        v.push_back(q.front());
+                        q.pop_front();
+                    }
+                    sort(v.begin(),v.end());
+                    for(int i = 0;i < v.size();i++){
+                        q.push_back(v[i]);
+                    }
+                    q.pop_front();
+                    opt_cnt++;
+                }
+                delete_num++;
+            }else if(line.find("head add") != string::npos){
+                int idx = line.rfind(' ');
+                int l = line.length();
+                int num = stoi(line.substr(idx + 1,l - idx - 1));
+                q.push_front(num);
+            }else if(line.find("tail add") != string::npos){
+                int idx = line.rfind(' ');
+                int l = line.length();
+                int num = stoi(line.substr(idx + 1,l - idx - 1));
+                q.push_back(num);
+            }
+        }
+        std::cout<<opt_cnt<<endl;
+    }
+}
+
+
+int cal_mark(vector<vector<char>>& v,int rows,int columns,int r,int c,int pre_r,int pre_c,char mark,int& edge_cnt){
+    if(v[r][c] == 'X'){
+        return 0;
+    }
+    if(v[r][c] == mark)
+        return 0;
+    v[r][c] = mark;
+    if(r == 0 || r == rows - 1||c == 0 || c == columns - 1){
+        edge_cnt++;
+        if(edge_cnt > 1)
+            return -1;
+    }
+    vector<vector<int>> dirs{{-1,0},{1,0},{0,-1},{0,1}};
+    int total = 1;
+    for(auto dir : dirs){
+        int next_r = r + dir[0];
+        int next_c = c + dir[1];
+        if(next_r == pre_r && next_c == pre_c)
+            continue;
+        if(next_r < 0 || next_r >= rows || next_c < 0 || next_c >= columns)
+            continue;
+        int ret = cal_mark(v,rows,columns,next_r,next_c,r,c,mark,edge_cnt);
+        if(ret == -1)
+            return -1;
+        total += ret;
+    }
+    return total;
+}
+
+void dfs_mark(vector<vector<char>>& v,int rows,int columns,int r,int c,int pre_r,int pre_c,char mark){
+    if(v[r][c] == 'X'){
+        return;
+    }
+    if(v[r][c] == mark){
+        return;
+    }
+    v[r][c] = mark;
+    vector<vector<int>> dirs{{-1,0},{1,0},{0,-1},{0,1}};
+    for(auto dir : dirs){
+        int next_r = r + dir[0];
+        int next_c = c + dir[1];
+        if(next_r == pre_r && next_c == pre_c){
+            continue;
+        }
+        if(next_r < 0 || next_r >= rows || next_c < 0 || next_c >= columns)
+            continue;
+        dfs_mark(v,rows,columns,next_r,next_c,r,c,mark);
+    }
+}
+
+void check_area(){
+//查找单入口空闲区域
+    int rows,columns;
+    while (cin >> rows >> columns){
+        vector<vector<char>> v(rows,vector<char>(columns));
+        for(int r = 0;r < rows;r++){
+            for(int c = 0;c < columns;c++){
+                cin>> v[r][c];
+            }
+        }
+        int max_area = 0;
+        int max_cnt = 0;
+        int ret_r = 0;
+        int ret_c = 0;
+        char mark1 = 'A';
+        char mark2 = 'C';
+        for(int r = 0;r < rows;r++){
+            if(v[r][0] != 'O')
+                continue;
+            dfs_mark(v,rows,columns,r,0,-1,-1,mark1);
+            int edge_cnt = 0;
+            int ret = cal_mark(v,rows,columns,r,0,-1,-1,mark2,edge_cnt);
+            if(ret > max_area){
+                max_area = ret;
+                ret_r = r;
+                ret_c = 0;
+                max_cnt = 1;
+            }else if (ret == max_area){
+                max_cnt++;
+            }
+        }
+        for(int r = 0;r < rows;r++){
+            if(v[r][columns - 1] != 'O')
+                continue;
+            int edge_cnt = 0;
+            dfs_mark(v,rows,columns,r,columns - 1,-1,-1,mark1);
+            int ret = cal_mark(v,rows,columns,r,columns - 1,-1,-1,mark2,edge_cnt);
+            if(ret > max_area){
+                max_area = ret;
+                ret_r = r;
+                ret_c = columns - 1;
+                max_cnt = 1;
+            }else if (ret == max_area){
+                max_cnt++;
+            }
+        }
+        for(int c = 0;c < columns;c++){
+            if(v[0][c] != 'O')
+                continue;
+            int edge_cnt = 0;
+            dfs_mark(v,rows,columns,0,c,-1,-1,mark1);
+            int ret = cal_mark(v,rows,columns,0,c,-1,-1,mark2,edge_cnt);
+            if(ret > max_area){
+                max_area = ret;
+                ret_r = 0;
+                ret_c = c;
+                max_cnt = 1;
+            }else if (ret == max_area){
+                max_cnt++;
+            }
+        }
+        for(int c = 0;c < columns;c++){
+            if(v[rows - 1][c] != 'O')
+                continue;
+            int edge_cnt = 0;
+            dfs_mark(v,rows,columns,rows - 1,c,-1,-1,mark1);
+            int ret = cal_mark(v,rows,columns,rows - 1,c,-1,-1,mark2,edge_cnt);
+            if(ret > max_area){
+                max_area = ret;
+                ret_r = rows - 1;
+                ret_c = c;
+                max_cnt = 1;
+            }else if (ret == max_area){
+                max_cnt++;
+            }
+        }
+        if(max_area == 0)
+            std::cout<<"NULL"<<endl;
+        else if(max_cnt > 1){
+            std::cout<< max_area<<endl;
+        }
+        else{
+            std::cout<<ret_r << " "<< ret_c << " "<< max_area<<endl;
+        }
+    }
+}
+
+void charge(){
+    //查找充电设备组合
+    //输入为三行：
+    //
+    //第一行是充电设备个数n。
+    //第二行是每个充电设备的输出功率。
+    //第三行是充电站最大输出功率p_max。
+    int n;
+    while(cin >> n){
+        vector<int> v(n);
+        for(int i = 0;i < n;i++){
+            cin >> v[i];
+        }
+        int p_max;
+        cin >> p_max;
+        vector<vector<int>> dp(n,vector<int>(p_max + 1));//dp[i][j]; 在前i个充电设备中， 限额j时的最大输出功率
+        for(int i = 0;i <= p_max;i++){
+            if(i >= v[0]){
+                dp[0][i] = v[0];
+            }
+        }
+        for(int i = 1;i < n;i++){
+            for(int j = 0;j <= p_max;j++){
+                if(j >= v[i])
+                    dp[i][j] = max(dp[i - 1][j],v[i] + dp[i][j - v[i]]);
+                else{
+                    dp[i][j] = dp[i - 1][j];
+                }
+            }
+        }
+        std::cout<<dp[n - 1][p_max]<<endl;
+    }
+}
+
+void muban(){
+    //最小木板长度
+    int n = 0;
+    int length = 0;
+    while(cin >> n >> length){
+        vector<int> v(n);
+        for (int i = 0; i < n; ++i) {
+            cin >> v[i];
+        }
+        sort(v.begin(),v.end());
+        int res = v[0];
+        int l = v.size();
+        for(int i = 1;i < l;i++){
+            int diff = v[i] - v[i - 1];
+            if((diff * i) <= length){
+                length -= diff * i;
+
+                res = v[i];
+            }else{
+                v[i - 1] += length/i;
+                res = v[i - 1];
+                length = 0;
+                break;
+            }
+        }
+        if(length > 0){
+            res += length / l;
+        }
+        std::cout<<res << endl;
+    }
+}
+
+void cover_substring(){
+    string s1,s2;
+    int k;
+    while(cin >> s1 >> s2){
+        cin >> k;
+        int l1 = s1.length();
+        int l2 = s2.length();
+        int find_idx = -1;
+        int cnt1[26]={};
+        int cnt2[26]={};
+        for(int i = 0;i < l1;i++){
+            cnt1[s1[i] - 'a']++;
+        }
+        for(int i = 0;i < min(l2,l1 + k);i++){
+            cnt2[s2[i] - 'a']++;
+        }
+        bool fail = false;
+        for(int i = 0;i < 26;i++){
+            if(cnt1[i] > cnt2[i]){
+                fail = true;
+                break;
+            }
+        }
+        if(!fail)
+            std::cout<<"0"<<endl;
+        else{
+            int find_idx = -1;
+            for(int i = l1 + k;i < l2;i++){
+                cnt2[s2[i - l1 - k] - 'a']--;
+                cnt2[s2[i] - 'a']++;
+                bool fail2 = false;
+                for(int j = 0;j < 26;j++){
+                    if(cnt1[j] > cnt2[j]){
+                        fail2 = true;
+                        break;
+                    }
+                }
+                if(!fail2){
+                    find_idx = i;
+                    break;
+                }
+            }
+            std::cout<< find_idx<<endl;
+        }
+    }
+}
+
+bool check_shifei(vector<int>& v,int k,int days){
+    int total = 0;
+    for(int i = 0;i < v.size();i++){
+        total += v[i]/k;
+        if(v[i] % k != 0)
+            total++;
+    }
+    return total <= days;
+}
+
+void shifei(){
+    int n,days;
+    while(cin >> n >> days){
+        vector<int> v(n);
+        int sum = 0;
+        for(int i = 0;i < n;i++){
+            cin >> v[i];
+            sum += v[i];
+        }
+        sort(v.begin(),v.end());
+        int low = v[0];
+        int high = v[n - 1];
+        int res = -1;
+        while (low < high){
+            int mid = (low + high)/2;
+            bool ret = check_shifei(v,mid,days);
+            if(!ret){
+                low = mid + 1;
+                res = mid + 1;
+            }else{
+                res = mid;
+                high = mid - 1;
+            }
+        }
+        std::cout<<res<<endl;
+    }
+}
+
+
+//01背包问题
+void workpay(){
+    //输入的第一行为两个正整数T和n。其中，T代表工作时长（单位：h，0 <T < 1000000），n代表工作数量（1 < n <= 3000）。
+    //接下来是n行，每行包含两个整数t和w，其中，t代表该工作消耗的时长（单位：h，t > 0），w代表该项工作的报酬。
+    int total_time,n;
+    while(cin>>total_time>>n){
+        vector<pair<int,int>> time_pay;
+        for(int i = 0;i < n;i++){
+            int t,pay;
+            cin >> t >> pay;
+            time_pay.push_back({t,pay});
+        }
+        vector<vector<int>> dp(n,vector<int>(total_time + 1)); //dp[i][j] 前i个工作中，花费j的时间的最大收益
+        for(int i = 0;i <= total_time;i++){
+            if(i >= time_pay[0].first){
+                dp[0][i] = time_pay[0].second;
+            }
+        }
+        for(int i = 1;i < n;i++){
+            for(int j = 0;j <= total_time;j++){
+                if(j >= time_pay[i].first){
+                    dp[i][j] = max(dp[i - 1][j],time_pay[i].second + dp[i - 1][j - time_pay[i].first]);
+                }
+            }
+        }
+        std::cout<< dp[n - 1][total_time]<<endl;
+    }
+}
+
+bool find_sub(string s1,int idx1,int l1,string s2,int idx2,int l2,vector<bool>& used){
+    while(idx1 < l1 && idx2 < l2){
+        while(idx1 < l1 && used[idx1]){
+            idx1++;
+        }
+        if(s1[idx1] == s2[idx2]){
+            used[idx1] = true;
+            idx1++;
+            idx2++;
+        }else{
+            idx1++;
+        }
+    }
+    return idx2 == l2;
+}
+
+void substring(){
+    string a,b;
+    while(cin >> a >> b){
+        int l1 = a.length();
+        int l2 = b.length();
+
+        vector<bool> used(l1);
+        int cnt = 0;
+        int idx1 = 0;
+        int idx2 = 0;
+
+        while (true){
+            bool ret = find_sub(a,0,l1,b,0,l2,used);
+            if(ret)
+                cnt++;
+            else{
+                break;
+            }
+        }
+        std::cout<<cnt<<endl;
+    }
+}
+
+//backtrace
+bool dfs_basketball(vector<int>& v,int cnt,int cur_score,int target_score){
+    if(cnt == 0)
+        return true;
+    for(int i = 0;i < v.size();i++){
+        if(cur_score + v[i] > target_score){
+            continue;
+        }
+        int tmp = v[i];
+        v.erase(v.begin() + i);
+        cur_score += tmp;
+        if(cur_score == target_score){
+            bool cur = dfs_basketball(v,cnt - 1,0,target_score);
+            if(cur)
+                return true;
+        }else{
+            bool cur = dfs_basketball(v,cnt,cur_score,target_score);
+            if(cur)
+                return true;
+        }
+        cur_score -= tmp;
+        v.push_back(tmp);
+    }
+    return false;
+}
+
+void basketball(){
+    int n;
+    while (cin >> n){
+        vector<int> v(n);
+        for (int i = 0; i < n; ++i) {
+            cin >> v[i];
+        }
+        sort(v.begin(),v.end());
+        int sum = 0;
+        for(auto i : v){
+            sum += i;
+        }
+        for(int i = n;i >= 1;i--){
+            if(sum % i != 0){
+                continue;
+            }
+            bool ret = dfs_basketball(v,i,0,sum/i);
+            if(ret){
+                std::cout<<sum/i<<endl;
+                break;
+            }
+        }
+    }
+}
+
+void score_sort(){
+    //给定一些同学的信息（名字，成绩）序列，请你将他们的信息按照成绩从高到低或从低到高的排列,相同成绩
+    //都按先录入排列在前的规则处理。
+    int n = 0;
+    int increase = 0;
+    while(cin >> n){
+        //cin.ignore();
+        cin>>increase;
+        int idx = 0;
+        vector<pair<int,string>> v;
+        for(int i = 0;i < n;i++){
+//            string line;
+//            getline(cin ,line);
+//            stringstream ss(line);
+            string name;
+            int score;
+            cin >> name>> score;
+            v.push_back({score,name});
+            idx++;
+        }
+        stable_sort(v.begin(),v.end(),[&](const pair<int,string>& v1,const pair<int,string>& v2)->bool{
+            if(increase == 1){
+                return v1.first < v2.first;
+            }else{
+                return v1.first > v2.first;
+            }
+        });
+        for(int i = 0;i < n;i++){
+            std::cout<< v[i].second<<" " << v[i].first << endl;
+        }
+    }
+}
+
+
+int calc_score(vector<int>& v,int idx){
+    int total_cnt = 0;
+    int score = 0;
+    for(int i = 0;i <= idx;i++){
+        if (total_cnt + v[i] > 100){ //必须上传了
+            score += 100 - total_cnt;
+            score -= total_cnt;
+            return score;
+        }else{
+            score += v[i];
+            score -= total_cnt;
+            total_cnt += v[i];
+        }
+    }
+    return score;
+}
+
+void log_score(){
+    string input;
+    while (getline(cin,input)){
+        stringstream ss(input);
+        vector<int> v;
+        int n;
+        while(ss >> n){
+            v.push_back(n);
+        }
+        int l = v.size();
+        int max_score = 0;
+        for(int i = 0;i < l;i++){
+            int cur = calc_score(v,i);
+            max_score = max(max_score,cur);
+        }
+        std::cout<<max_score<<endl;
+    }
+}
+
+void car_color(){
+    string line;
+    while(getline(cin, line)){
+        stringstream ss(line);
+        int seconds = 0;
+        cin>>seconds;
+        int color;
+        deque<int> q;
+        int cnt[3]{};
+        int max_cnt = 0;
+        while(ss >> color){
+            if(q.size() < seconds){
+                q.push_back(color);
+                cnt[color]++;
+                if(cnt[color] > max_cnt)
+                    max_cnt = cnt[color]++;
+            }else{
+                cnt[q.front()]--;
+                q.pop_front();
+                q.push_back(color);
+                cnt[color]++;
+                if(cnt[color] > max_cnt)
+                    max_cnt = cnt[color]++;
+            }
+        }
+        std::cout<< max_cnt<<endl;
+    }
+}
+
+void print_task(){
+    //7
+    //IN 1 1
+    //IN 1 2
+    //IN 1 3
+    //IN 2 1
+    //OUT 1
+    //OUT 2
+    //OUT 2
+    int n = 0;
+    while(cin >> n){
+        //优先级、时间
+        std::function<bool(const pair<int,int>& p1,pair<int,int>& p2)> my_cmp = [](const pair<int,int>& p1,pair<int,int>& p2)->bool{
+            if(p1.first != p2.first)
+                return p1.first < p2.first;
+            else{
+                return p1.second > p2.second;
+            }
+        };
+        vector<std::priority_queue<pair<int,int>,std::vector<pair<int,int>>, decltype(my_cmp)>> q(n,decltype(q)::value_type(my_cmp));
+        int time_index = 1;
+        vector<int> out_task;
+        for(int i = 0;i < n;i++){
+            string status;
+
+            cin>>status;
+            if(status == "IN"){
+                int p_no = 0;
+                int priority = 0;
+                cin>>p_no>>priority;
+                q[p_no].push({priority,time_index});
+                time_index++;
+            }else if(status == "OUT"){
+                int p_no = 0;
+                cin>>p_no;
+                out_task.push_back(p_no);
+            }
+        }
+        for(int i = 0;i < out_task.size();i++){
+            int p_no = out_task[i];
+            if(q[p_no].empty()){
+                std::cout<<"NULL"<<endl;
+            }else{
+                std::cout<< q[p_no].top().second<<endl;
+                q[p_no].pop();
+            }
+        }
+    }
+}
+
+int dfs_server(vector<vector<int>>& v,int n,int cur){
+    int res = 0;
+    for(int i = 0;i < n;i++){
+        if(i == cur){
+            continue;
+        }
+        if(v[cur][i] == 0)
+            continue;
+
+        auto ret = dfs_server(v,n,i);
+        res = max(res,ret);
+    }
+    return res + v[cur][cur];
+}
+
+void server(){
+    int n = 0;
+    while (cin >> n){
+        vector<vector<int>> v(n,vector<int>(n));
+        for(int i = 0;i < n;i++){
+            for(int j = 0;j < n;j++){
+                cin >> v[i][j];
+            }
+        }
+        int k = 0;
+        cin >> k;
+        //vector<bool> visited(n);
+        auto res = dfs_server(v,n,k - 1);
+        std::cout<< res<<endl;
+    }
+}
+
+string recrusive_rb(long n,long k){
+    if(n == 1){
+        return "red";
+    }
+    if(n == 2){
+        if(k == 0)
+            return "blue";
+        else
+            return "red";
+    }
+    long total_len = long(pow(2,n - 1));
+    if(k >= total_len/2){
+        long pos = k - total_len/2;
+        return recrusive_rb(n - 1,pos);
+    }else{
+        auto ret = recrusive_rb(n - 1,k);
+        if(ret == "red")
+            return "blue";
+        else
+            return "red";
+    }
+}
+
+void rb_issue(){
+    //第1个字符串：R
+    //第2个字符串：BR
+    //第3个字符串：RBBR
+    //第4个字符串：BRRBRBBR
+    //第5个字符串：RBBRBRRBBRRBRBBR
+    int cnt;
+    while(cin >> cnt){
+        vector<pair<long,long>> record(cnt);
+        for(int i = 0;i < cnt;i++){
+            long n,k;
+            cin >> n >> k;
+            record[i] = {n,k};
+        }
+        for(int i = 0;i < cnt;i++){
+            auto res = recrusive_rb(record[i].first,record[i].second);
+            std::cout<<res<<endl;
+        }
+    }
+}
+
+void sort_string(){
+    //给定一个字符串s，包含以空格分隔的若干个单词，请对s进行如下处理后输出：
+    //
+    //单词内部调整：对每个单词字母重新按字典序排序；
+    //单词间顺序调整：
+    //统计每个单词出现的次数，并按次数降序排列
+    //次数相同时，按单词长度升序排列
+    //次数和单词长度均相同时，按字典序升序排列
+    string input;
+    while(getline(cin,input)){
+        stringstream ss(input);
+        vector<string> v;
+        map<string,int> m;
+        string word;
+        while(getline(ss,word,' ')){
+            std::sort(word.begin(), word.end());
+            m[word]++;
+            v.push_back(word);
+        }
+        std::sort(v.begin(),v.end(), [&](const string& s1,const string& s2)->bool{
+            if(m[s1] == m[s2]){
+                if(s1.length() == s2.length()){
+                    return s1 < s2;
+                }else{
+                    return s1.length() < s2.length();
+                }
+            }else{
+                return m[s1] > m[s2];
+            }
+        });
+        stringstream ss2;
+        bool first = true;
+        for(int i = 0;i < v.size();i++){
+            if(!first)
+                ss2 << " ";
+            ss2 << v[i];
+            first = false;
+        }
+        std::cout<< ss2.str() << endl;
+    }
+}
+
+int backtrace_short_distance(vector<vector<int>>& graph,int n,int cur_node,vector<bool>& visited){
+    bool pass = true;
+    for(int i = 0;i < n;i++){
+        if(!visited[i]){
+            pass = false;
+            break;
+        }
+    }
+    if(pass){
+        return graph[cur_node][0];
+    }
+    int res = 1 << 31 - 1;
+    for(int i = 0;i < graph[cur_node].size();i++){
+        if(visited[i]){
+            continue;
+        }
+        visited[i] = true;
+        int ret = graph[cur_node][i] + backtrace_short_distance(graph,n,i,visited);
+        res = min(res,ret);
+        visited[i] = false;
+    }
+    return res;
+}
+
+void short_distance(){
+    int n = 0;
+    while(cin >> n){
+        vector<vector<int>> graph(n,vector<int>(n));
+        for(int i = 0;i < n;i++){
+            for(int j = 0;j < n;j++){
+                cin >> graph[i][j];
+            }
+        }
+        vector<bool> visited(n);
+        visited[0] = true;
+        int res = backtrace_short_distance(graph,n,0,visited);
+        std::cout<<res<<endl;
+    }
+}
+
+bool check_conflict(vector<vector<int>> arr,int r,int c,int n){
+    for(int j = 0;j < 9;j++){//查找同一行的数据
+        if(r != j){
+            if(arr[r][j] == n){
+                return false;
+            }
+        }
+    }
+    for(int i = 0;i < 9;i ++){//查找同一列的数据
+        if(r != i){
+            if(arr[i][c] == n){
+                return false;
+            }
+        }
+    }
+    int rows_idx = r / 3;
+    int columns_idx = c / 3;
+    for(int i = 3 * rows_idx;i < 3 * rows_idx + 3 ;i++)
+        for(int j = 3 * columns_idx;j < 3 * columns_idx + 3;j++){
+            if(r != i && c != j){
+                if(arr[i][j] == n)
+                    return false;
+            }
+        }
+    return true;
+}
+
+bool dfs_sudu(vector<vector<int>>& arr,int r,int c){
+    if(r == 9){
+        return true;
+    }
+    if(arr[r][c] != 0){
+        c= (c + 1)%9;
+        if(c == 0)
+            r++;
+        return dfs_sudu(arr,r,c);
+    }else{
+        for(int i = 1;i <= 9;i++){
+            if(check_conflict(arr,r,c,i)){
+                arr[r][c] = i;
+                int next_c = (c+ 1)%9;
+                int next_r = r;
+                if(next_c == 0)
+                    next_r++;
+                bool ret = dfs_sudu(arr,next_r,next_c);
+                if(ret){
+                    return true;
+                }else{
+                    arr[r][c] = 0;
+                    continue;
+                }
+            }
+        }
+    }
+    return false;
+}
+
+void sudu(){
+    //0 9 2 4 8 1 7 6 3
+    //4 1 3 7 6 2 9 8 5
+    //8 6 7 3 5 9 4 1 2
+    //6 2 4 1 9 5 3 7 8
+    //7 5 9 8 4 3 1 2 6
+    //1 3 8 6 2 7 5 9 4
+    //2 7 1 5 3 8 6 4 9
+    //3 8 6 9 1 4 2 5 7
+    //0 4 5 2 7 6 8 3 1
+    vector<vector<int>> arr(9,vector<int>(9));
+    for(int i = 0;i < 9;i++){
+        for(int j = 0;j < 9;j++){
+            cin >> arr[i][j];
+        }
+    }
+    dfs_sudu(arr,0,0);
+    for(int i = 0;i < 9;i++){
+        for(int j = 0;j < 9;j++){
+            if(j != 0)
+                cout<< " ";
+            cout << arr[i][j];
+        }
+        cout<<endl;
+    }
+}
+
 //void print_money(){
 //    //151121.15
 //
