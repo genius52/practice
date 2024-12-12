@@ -8,6 +8,669 @@
 using namespace std;
 
 
+void dfs_game_match(vector<int>& v,int l,int idx,int diff_limit,vector<int>& choose1,vector<int>& choose2,int& max_team,int& total_diff){
+    if(idx == l){
+        if(choose1.size() != choose2.size())
+            return;
+        int match_cnt = 0;
+        int diff_cnt = 0;
+        for(int i = 0;i < choose1.size();i++){
+            if(abs(choose1[i] - choose2[i]) <= diff_limit){
+                match_cnt++;
+                diff_cnt += abs(choose1[i] - choose2[i]);
+            }
+        }
+        if(match_cnt == 0)
+            return;
+        if(match_cnt > max_team){
+            max_team = match_cnt;
+            total_diff = diff_cnt;
+        }else if(match_cnt == max_team){
+            total_diff = min(total_diff,diff_cnt);
+        }
+        return;
+    }
+    // choose1
+    if(choose1.size() < l/2){
+        choose1.push_back(v[idx]);
+        dfs_game_match(v,l,idx + 1,diff_limit,choose1,choose2,max_team,total_diff);
+        choose1.pop_back();
+    }
+    if(choose2.size() < l/2){
+        choose2.push_back(v[idx]);
+        dfs_game_match(v,l,idx + 1,diff_limit,choose1,choose2,max_team,total_diff);
+        choose2.pop_back();
+    }
+    dfs_game_match(v,l,idx + 1,diff_limit,choose1,choose2,max_team,total_diff);
+}
+
+void game_match(){
+    //6 30
+    //81 87 47 59 81 18
+    int n;
+    while(cin>>n){
+        int diff = 0;
+        cin >> diff;
+        vector<int> v(n);
+        for(int i = 0;i < n;i++){
+            cin >> v[i];
+        }
+        sort(v.begin(),v.end());
+        vector<int> choose1;
+        vector<int> choose2;
+        int max_team = 0;
+        int max_diff = (1 << 31) - 1;
+        dfs_game_match(v,n,0,diff,choose1,choose2,max_team,max_diff);
+        if(max_team == 0)
+            std::cout<<-1<<endl;
+        else
+            std::cout<<max_diff<<endl;
+    }
+}
+
+void setchip(){
+    //配置A：占用容量为1.25 * 1 = 1.25G。
+    //配置B：占用容量为1.25 * 2 = 2.5G。
+    //配置C：占用容量为1.25 * 8 = 10G。
+
+    //第一行是M：每块芯片容量为M * 1.25G，取值范围为1~256。
+    //第二行是N：每块板卡包含芯片数量，取值范围为1~32。
+    //第三行是用户配置序列：例如ACABA，长度不超过1000。
+    //8
+    //2
+    //ACABA
+    int width,cnt;
+    while(cin >> width >> cnt){
+        vector<vector<int>> v(cnt,vector<int>(width));
+        string s;
+        cin>>s;
+        int l = s.length();
+        for(int i = 0;i < l;i++){
+            //计算每一行0的个数
+            int need_cnt = 0;
+            if(s[i] == 'A'){
+                need_cnt = 1;
+            }else if(s[i] == 'B'){
+                need_cnt = 2;
+            }else if(s[i] == 'C'){
+                need_cnt = 8;
+            }
+            for(int r = 0;r < v.size();r++){
+                int c = 0;
+                while(c < width && v[r][c] == 1){
+                    c++;
+                }
+                int rest_zero = width - c;
+                if(rest_zero >= need_cnt){
+                    while(need_cnt > 0){
+                        v[r][c] = 1;
+                        c++;
+                        need_cnt--;
+                    }
+                    break;
+                }
+            }
+        }
+        for(int r = 0;r < cnt;r++){
+            for(int c = 0;c < width;c++){
+                std::cout<< v[r][c];
+            }
+            cout<<endl;
+        }
+    }
+}
+
+//0表示红色，1表示蓝色
+bool check_red_black(int color,vector<vector<int>>& graph,int n){
+    for(int i = 0;i < n;i++){
+        for(int j = 0;j < graph[i].size();j++){
+            if(i == j)
+                continue;
+            int color1 = (color >> i) & 1;
+            int color2 = (color >> graph[i][j]) & 1;
+            if(color1 == 0 && color2 == 0){
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+void red_black(){
+    //第一行两个数字n、m，表示图中有n个节点和m条边。
+    //
+    //接下来共计m行，每行两个数字s、t，表示一条连接节点s和节点t的边，节点编号取值范围是[0,n)。
+    //1 红色
+    //2 黑丝
+    int n,edge_cnt;
+    while(cin >> n >> edge_cnt){
+
+        vector<vector<int>> graph(n);
+        for(int i = 0;i < edge_cnt;i++){
+            int from,to;
+            cin >> from >> to;
+            graph[from].push_back(to);
+            graph[to].push_back(from);
+        }
+        vector<int> color(n);
+        int res = 0;
+        for(int i = (1 << n) - 1;i >= 0;i--){
+            bool ret = check_red_black(i,graph,n);
+            if(ret)
+                res++;
+        }
+        std::cout<< res<<endl;
+    }
+}
+
+void once_formula(){
+    //s,t,a,b
+    //s + aY + bX  = t
+    //s + aY - bX  = t
+    //s - aY - bX  = t
+    //s - aY + bX  = t
+
+    //bX + aY = t - s
+    //t - s - aY = bX;
+    //(t - s - aY) % b == 0
+    int s ,t ,a ,b;
+
+    while(cin >> s >> t >> a >> b){
+        int b_cnt = 0;
+        int times = 0;
+        while(((t - s - times * a )% b) != 0 && ((t - s + times * a )% b) != 0){
+            times++;
+        }
+        std::cout<< times;
+    }
+}
+
+void check_electric(){
+    //2 5 2 6
+    //1 3 4 5 8
+    //2 3 6 7 1
+    int rows,columns;
+    int edge_cnt = 0;
+    int limit = 0;
+    while(cin >> rows >> columns >> edge_cnt >> limit){
+        vector<vector<int>> v(rows,vector<int>(columns));
+        for(int i = 0;i < rows;i++){
+            for(int j = 0;j < columns;j++){
+                cin >> v[i][j];
+            }
+        }
+        vector<vector<int>> dp(rows,vector<int>(columns));
+        dp[0][0] = v[0][0];
+        for(int r = 1;r < rows;r++){
+            dp[r][0] = dp[r - 1][0] + v[r][0];
+        }
+        for(int c = 1;c < columns;c++){
+            dp[0][c] = dp[0][c - 1] + v[0][c];
+        }
+        for(int r = 1;r < rows;r++){
+            for(int c = 1;c < columns;c++){
+                dp[r][c] = dp[r- 1][c] + dp[r][c - 1] - dp[r - 1][c - 1];
+            }
+        }
+        int res = 0;
+        for(int r = edge_cnt - 1;r < rows;r++){
+            for(int c = edge_cnt - 1;c < columns;c++){
+                int cur = dp[r][c];
+                int left = c - edge_cnt;
+                int up = r - edge_cnt;
+                if(left >= 0){
+                    cur -= dp[r][left];
+                }
+                if(up >= 0){
+                    cur -= dp[up][c];
+                }
+                if(left >= 0 && up >= 0){
+                    cur += dp[up][left];
+                }
+                if(cur >= limit)
+                    res++;
+            }
+        }
+        std::cout<<res<<endl;
+    }
+}
+
+void send_package(){
+    //输入：
+    //4 2
+    //package1 A C
+    //package2 A C
+    //package3 B C
+    //package4 A C
+    //A B package1
+    //A C package2
+    //输出：
+    //package2
+    //解释：
+    //package2 要从 A 发往 C，但 A-C 这条路会拦截 package2，所以 package2 不能顺利送达
+    int pack_cnt = 0;
+    int road_cnt = 0;
+    while(cin >> pack_cnt >> road_cnt){
+        unordered_map<string,pair<string,string>> m_pack;
+        unordered_map<string,unordered_set<string>> m_road_pack;
+        for(int i = 0;i < pack_cnt;i++){
+            string pack_name, from,to;
+            cin >> pack_name >> from >>to;
+            m_pack[pack_name] = {from,to};
+        }
+        cin.ignore();
+        for(int i = 0;i < road_cnt;i++){
+            string from,to;
+            string pack_name;
+            string line;
+            getline(cin,line);
+            stringstream ss(line);
+            ss >> from >> to;
+            while(ss >> pack_name){
+                m_road_pack[from + to].insert(pack_name);
+            }
+        }
+        vector<string> res;
+        for(auto it = m_pack.begin();it != m_pack.end();it++){
+            string trace = it->second.first + it->second.second;
+            if(m_road_pack.find(trace) != m_road_pack.end()){
+                if(m_road_pack[trace].find(it->first) != m_road_pack[trace].end()){
+                    res.push_back(it->first);
+                }
+            }
+        }
+        sort(res.begin(),res.end());
+        for(int i = 0;i < res.size();i++){
+            std::cout<<res[i]<<endl;
+        }
+    }
+}
+
+bool check_ball_cnt(vector<int>& v,int target,int sum){
+    int cur_sum = 0;
+    for(int i = 0;i < v.size();i++){
+        if(v[i] <= target){
+            cur_sum += v[i];
+        }else{
+            cur_sum += target;
+        }
+    }
+    return cur_sum <= sum;
+}
+
+void ball_cnt(){
+    //14 7
+    //2 3 2 5 5 1 4
+    int sum = 0;
+    int n = 0;
+    while(cin >> sum >> n){
+        vector<int> v(n);
+        int cur_sum = 0;
+        for(int i = 0;i < n;i++){
+            cin >> v[i];
+            cur_sum += v[i];
+        }
+        if(cur_sum <= sum){
+            std::cout<<"[]"<<endl;
+        }else{
+            int low = 0;
+            int high = 0;
+            for(int i = 0;i < n;i++){
+                if(v[i] > high)
+                    high = v[i];
+            }
+            int res = high;
+            while(low < high){
+                int mid = (low + high)/2; //假设的限定值
+                bool ret = check_ball_cnt(v,mid,sum);
+                if(ret){
+                    low = mid;
+                    res = mid;
+                }else{
+                    high = mid - 1;
+                }
+            }
+            vector<int> cnt(n);
+            for(int i = 0;i < n;i++){
+                if(v[i] > res){
+                    cnt[i] = v[i] - res;
+                }
+            }
+            cout<<"[";
+            for(int i = 0;i < n;i++){
+                if(i != 0)
+                    cout<< " ";
+                std::cout<<cnt[i];
+            }
+            cout<<"]";
+        }
+    }
+}
+
+void similar_word(){
+    int n;
+    while(cin >> n){
+        vector<string> v(n);
+        for(int i = 0;i < n;i++){
+            cin >> v[i];
+        }
+        string target;
+        cin >> target;
+        std::sort(target.begin(), target.end());
+        vector<string> res;
+        for(int i = 0;i < n;i++){
+            if(v[i].size() != target.size())
+                continue;
+            string s2 = v[i];
+            std::sort(s2.begin(), s2.end());
+            if(s2 == target){
+                res.push_back(v[i]);
+            }
+        }
+        if(res.size() == 0){
+            cout<< "null" << endl;
+        }else{
+            sort(res.begin(),res.end());
+            for(int i = 0;i < res.size();i++){
+                if(i != 0)
+                    cout<< " ";
+                cout<<res[i];
+            }
+            cout<<endl;
+        }
+    }
+}
+
+void save_water(){
+    string line;
+    while(getline(cin ,line)){
+        stringstream ss(line);
+        int height;
+        vector<int> v;
+        while(ss >> height){
+            v.push_back(height);
+        }
+        int l = v.size();
+        int left = 0;
+        int right = l - 1;
+        int max_val = 0;
+        int move_left = left + 1;
+        int move_right = right - 1;
+        int idx1 = 0;
+        int idx2 = 0;
+        while(left < right){
+            while(left < right && v[left] <= v[left + 1]){
+                left++;
+            }
+            while(right > left && v[right] <= v[right - 1]){
+                right--;
+            }
+            if(left >= right)
+                break;
+            int cur_val = 0;
+            int level = min(v[left],v[right]);
+            for(int i = left + 1;i < right;i++){
+                if(v[i] < level) {
+                    cur_val += level - v[i];
+                }
+            }
+            if(cur_val >= max_val){
+                max_val = cur_val;
+                idx1 = left;
+                idx2 = right;
+            }
+            if(v[left] < v[right]){
+                left++;
+            }else{
+                right--;
+            }
+        }
+        if(max_val == 0)
+            std::cout<<max_val << endl;
+        else{
+            std::cout<< idx1 << " " << idx2 << " "<<max_val<<endl;
+        }
+    }
+}
+
+void soldier_river(){
+//5
+//43
+//12 13 15 20 50
+    int n = 0;
+    while (cin >> n){
+        int time_limit;
+        cin >> time_limit;
+        vector<int> v;
+        for(int i = 0;i < n;i++){
+            int cur;
+            cin>> cur;
+            if(cur < time_limit)
+                v.push_back(cur);
+        }
+        sort(v.begin(),v.end());
+        int l = v.size();
+        if(l == 0){
+            std::cout<<"0 0"<<endl;
+            continue;
+        }
+        if(v[0] > time_limit){
+            std::cout<<"0 0"<<endl;
+            continue;
+        }
+        if(l == 1){
+            std::cout<<"1 "<<v[0]<<endl;
+        }
+        vector<int> dp(l);//dp[i] 存活i人的最短过河时间,超过敌人到达时间则返回dp[i - 1]
+        dp[0] = v[0];
+        dp[1] = max(v[0],v[1]);
+        //每次都是a[0]划船，运i-1过河
+        int idx = 0;
+        //5
+        //130
+        //50 12 13 15 20
+        for(int i = 2;i < l;i++){
+            // 过去 min(max(a[i],a[j]),min(a[i],a[j]) * 10)
+            // 回来 min(a[i],a[j]) * 10
+            //岸边剩下一人的情况下，v[0]回来带走
+            dp[i] = dp[i - 1] + v[0] + min(v[i],v[0] * 10);
+            //岸边剩下两人的情况下，速度快的最后一起走
+            dp[i] = min(dp[i],dp[i - 2] + v[0] + max(v[i - 1],v[i]) + v[1] + max(v[0],v[1]));
+            if(dp[i] > time_limit){
+                idx = i - 1;
+                std::cout<< i<<" "<< dp[i - 1]<<endl;
+                return;
+            }
+            //dp[i] += + v[0];//回来
+        }
+        //当1个士兵划船过河，用时为a[i]，其中0 <= i < N。
+        //当2个士兵坐船，同时划船过河时，用时为max(a[j], a[i])，两士兵中用时最长的。
+        //当2个士兵坐船，只有一个士兵划船时，用时为a[i] * 10，其中a[i]为划船士兵用时。
+        //std::cout<<total << " "<< cur_time<<endl;
+        std::cout<<l<<" "<< dp[l - 1]<<endl;
+    }
+}
+
+void sendmesg(){
+    //本题中，发送者A符合以下条件之一的，则认为A是垃圾短信发送者：
+    //发短信的接收者中，没有发过短信给A的人数L大于5。
+    //A发送的短信数减去A接收的短信数M大于10。
+    //如果存在X，A发送给X的短信数减去A接收到X的短信数N大于5。
+
+    //15
+    //1 2
+    //1 3
+    //1 4
+    //1 5
+    //1 6
+    //1 7
+    //1 8
+    //1 9
+    //1 10
+    //1 11
+    //1 12
+    //1 13
+    //1 14
+    //14 1
+    //1 15
+    //1
+    int n = 0;
+    while(cin >> n){
+        unordered_map<int,int> send_minus_receive;
+        unordered_map<int,unordered_map<int,int>> send_receive;
+
+        for(int i = 0;i < n;i++){
+            int sender,receiver;
+            cin >> sender >>receiver;
+            send_minus_receive[sender]++;
+            send_receive[sender][receiver]++;
+            //send_minus_receive[receiver]--;
+        }
+        int person;
+        cin >> person;
+        //本题中，发送者A符合以下条件之一的，则认为A是垃圾短信发送者：
+        //发短信的接收者中，没有发过短信给A的人数L大于5。
+        //A发送的短信数减去A接收的短信数M大于10。
+        //如果存在X，A发送给X的短信数减去A接收到X的短信数N大于5。
+        bool is_laji = false;
+        int not_receive_cnt = 0;
+        if(send_receive.find(person) == send_receive.end()){
+
+        }else{
+            for(auto it = send_receive[person].cbegin();it != send_receive[person].cend();it++){
+                int receiver = it->first;
+                int cnt = it->second;
+                if(send_receive.find(receiver) == send_receive.end()){//从没发过短信
+                    not_receive_cnt++;
+                }else{
+                    if(send_receive[receiver].find(person) == send_receive[receiver].end()){//没给他发过短信
+                        not_receive_cnt++;
+                    }else{
+                        int diff = cnt - send_receive[receiver][person];//互相发过短信
+                        if(diff > 5)
+                            is_laji = true;
+                    }
+                }
+            }
+        }
+        if(not_receive_cnt > 5)
+            is_laji = true;
+        for(auto it = send_receive.begin();it != send_receive.end();it++){
+            if(it->first == person)
+                continue;
+            for(auto it2 = it->second.begin();it2 != it->second.end();it2++){
+                if(it2->first == person){
+                    send_minus_receive[person] -= it2->second;
+                }
+            }
+        }
+        if(send_minus_receive[person] > 10)
+            is_laji = true;
+        //输出该ID是否为垃圾短信发送者，并且按序列输出L M的值（由于N值不唯一，不需要输出）。输出均为字符串。
+        //L = A发短信的接收者中，没有给person发过短信的人数
+        //A发送的短信数减去A接收的短信数M大于10。
+        if(is_laji)
+            std::cout<<"true " << not_receive_cnt << " "<<send_minus_receive[person]<<endl;
+        else
+            std::cout<<"false " << not_receive_cnt << " "<<send_minus_receive[person]<<endl;
+    }
+}
+
+void k_array(){
+    //7 2
+    //1 2 3 1 2 3 1
+    int n = 0;
+    while(cin >> n){
+        int k = 0;
+        cin >> k;
+        vector<int> v(n);
+        for(int i = 0;i < n;i++){
+            cin >> v[i];
+        }
+        int sum = 0;
+        for(int i = 0;i < n;i++){
+            unordered_map<int,int> num_cnt;
+            for(int j = i;j < n;j++){
+                num_cnt[v[j]]++;
+                if(num_cnt[v[i]] >= k){
+                    sum += n - j;
+                    break;
+                }
+            }
+        }
+        std::cout<<sum<<endl;
+    }
+}
+
+void parallelism(){
+    //差分数组
+    int n = 0;
+    while(cin >> n){
+        vector<vector<int>> v(n,vector<int>(3));
+        for(int i = 0;i < n;i++){
+            cin >> v[i][0] >> v[i][1] >> v[i][2];
+        }
+        sort(v.begin(),v.end(),[](const vector<int>& v1,const vector<int>& v2)->bool{
+            if(v1[0] == v2[0]){
+                return v1[1] < v2[1];
+            }
+            return v1[0] < v2[0];
+        });
+        int max_val = 0;
+        int cur_para = 0;
+        std::priority_queue<pair<int,int>,std::vector<pair<int,int>>,std::greater<pair<int,int>>> q;//end_time,start_time,
+        for(int i = 0;i < n;i++){
+            int cur_starttime = v[i][0];
+            int cur_endtime = v[i][1];
+            int para_val = v[i][2];
+            while (!q.empty() && q.top().first <= cur_starttime){
+                cur_para -= q.top().second;
+                q.pop();
+            }
+            cur_para += para_val;
+            q.push({cur_endtime,para_val});
+            max_val = max(max_val,cur_para);
+        }
+        std::cout<<max_val<<endl;
+    }
+}
+
+void dfs_charge(vector<int>& v,int l,int idx,int money,int message,int& res){
+    if(money < 0)
+        return;
+    if(money == 0)
+        res = max(res,message);
+    if(idx >= l){
+        res = max(res,message);
+        return;
+    }
+    //choose current,skip current
+    for(int cnt = 0;(cnt * idx )<= money;cnt++){
+        dfs_charge(v,l,idx + 1,money - idx * cnt,message + v[idx] * cnt,res);
+    }
+}
+
+void charge(){
+//15
+//10 20 30 40 60 60 70 80 90 150
+    int money;
+    while (cin>>money){
+        cin.ignore();
+        string line;
+        getline(cin,line);
+        stringstream ss(line);
+        vector<int> v(1);
+        int cnt;
+        while(ss >> cnt){
+            v.push_back(cnt);
+        }
+        int l = v.size();
+        int res = 0;
+        dfs_charge(v,l,1,money,0,res);
+        std::cout<< res<<endl;
+    }
+}
+
 void find101(){
     int n1,n2;
     while(cin >>n1 >> n2){
@@ -1415,7 +2078,7 @@ int backtrace_short_distance(vector<vector<int>>& graph,int n,int cur_node,vecto
     if(pass){
         return graph[cur_node][0];
     }
-    int res = 1 << 31 - 1;
+    int res = (1 << 31) - 1;
     for(int i = 0;i < graph[cur_node].size();i++){
         if(visited[i]){
             continue;
@@ -2763,7 +3426,7 @@ int dp_word_distance(string& word1, string& word2, int idx1, int idx2, int l1, i
     if (memo[idx1][idx2] != -1)
         return memo[idx1][idx2];
 
-    int res = 1 << 31 - 1;
+    int res = (1 << 31) - 1;
     if (word1[idx1] == word2[idx2]) {
         res = min(res, dp_word_distance(word1, word2, idx1 + 1, idx2 + 1, l1, l2, memo));
     }
@@ -3963,7 +4626,7 @@ void calc_city_degree(){
         graph[city2].push_back(city1);
         n2--;
     }
-    int min_degree = 1 << 31 - 1;
+    int min_degree = (1 << 31) - 1;
     std::vector<int> min_city;
     for(int i = 1;i <= n;i++){
         int ret = delete_city(graph,i,min_degree);
@@ -4943,7 +5606,7 @@ void combine_divide_group(std::vector<int>& v,int idx,int choose_cnt,int cur_sum
     combine_divide_group(v,idx + 1,choose_cnt,cur_sum,sum,min_diff);
 }
 
-void divide_group(){
+void divide_group2(){
     //10 9 8 7 6 5 4 3 2 1
     int n;
     std::vector<int> v;
@@ -4955,7 +5618,7 @@ void divide_group(){
         sum += n;
         v.push_back(n);
     }
-    int res = 1 << 31 - 1;
+    int res = (1 << 31) - 1;
     combine_divide_group(v,0,0,0,sum,res);
     std::cout<< res;
 }
