@@ -8,6 +8,85 @@
 using namespace std;
 
 
+void dfs_speak_tree(vector<int>& v,int l,int idx,int sum_time,int& max_time){
+    if(idx >= l){
+        max_time = max(max_time,sum_time);
+        return;
+    }
+    if(v[idx] == -1){
+        max_time = max(max_time,sum_time);
+        return;
+    }
+    dfs_speak_tree(v,l,idx * 2 + 1,sum_time + v[idx],max_time);
+    dfs_speak_tree(v,l,idx * 2 + 2,sum_time + v[idx],max_time);
+}
+
+void speak_tree(){
+    //0 9 20 -1 -1 15 7 -1 -1 -1 -1 3 2
+    string s;
+    while(getline(cin,s)){
+        stringstream ss(s);
+        vector<int> v;
+        string s_no;
+        while(getline(ss,s_no,' ')){
+            v.push_back(stoi(s_no));
+        }
+        int l = v.size();
+        int max_time = 0;
+        dfs_speak_tree(v,l,0,0,max_time);
+        std::cout<< max_time << endl;
+    }
+}
+
+struct treenode{
+    treenode* left = nullptr;
+    treenode* right = nullptr;
+    char val = 0;
+};
+
+//left,right,root = postorder
+//left,root,right = inorder
+treenode* recursive_buildtree(string postorder,string inorder){
+    int l = postorder.length();
+    if(l == 0)
+        return nullptr;
+    treenode* root = new treenode;
+    root->val = postorder[l - 1];
+    if(l == 1)
+        return root;
+    int idx = 0;
+    while(idx < l && inorder[idx] != postorder[l - 1]){
+        idx++;
+    }
+    string inorder_left_s = inorder.substr(0,idx);
+    string inorder_right_s = inorder.substr(idx + 1,l - idx - 1);
+
+    string postorder_left_s = postorder.substr(0,inorder_left_s.length());
+    string postorder_right_s = postorder.substr(inorder_left_s.length(),inorder_right_s.length());
+    root->left = recursive_buildtree(postorder_left_s,inorder_left_s);
+    root->right = recursive_buildtree(postorder_right_s,inorder_right_s);
+    return root;
+}
+
+void build_tree(){
+    //CBEFDA CBAEDF
+    string postorder,inorder;
+    while(cin >> postorder >> inorder){
+        auto root = recursive_buildtree(postorder,inorder);
+        //level visit
+        queue<treenode*> q;
+        q.push(root);
+        while(!q.empty()){
+            auto front = q.front();
+            q.pop();
+            std::cout<<front->val;
+            if(front->left != nullptr)
+                q.push(front->left);
+            if(front->right != nullptr)
+                q.push(front->right);
+        }
+    }
+}
 
 void gray_bitmap(){
     //10 10 255 34 0 1 255 8 0 3 255 6 0 5 255 4 0 7 255 2 0 9 255 21
