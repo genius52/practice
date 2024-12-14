@@ -8,6 +8,861 @@
 using namespace std;
 
 
+
+void gray_bitmap(){
+    //10 10 255 34 0 1 255 8 0 3 255 6 0 5 255 4 0 7 255 2 0 9 255 21
+    //3 4
+    string s;
+    while(getline(cin,s)){
+        stringstream ss(s);
+        int rows,columns;
+        ss >> rows >> columns;
+        int gray = 0;
+        int cnt = 0;
+        vector<vector<int>> v(rows,vector<int>(columns));
+        int idx = 0;
+        while(ss >> gray >> cnt){
+            for(int i = idx;i < idx + cnt;i++){
+                v[i / columns][i % columns] = gray;
+            }
+            idx += cnt;
+        }
+        int x,y;
+        cin >> x >> y;
+        cout<<v[x][y]<<endl;
+    }
+}
+
+void flight(){
+    //CA3385,CZ6678,SC6508,DU7523,HK4456,MK0987
+    string line;
+    while(cin >> line){
+        stringstream ss(line);
+        string s;
+        vector<string> v;
+        while(getline(ss,s,',')){
+            v.push_back(s);
+        }
+        sort(v.begin(),v.end(),[](const string& s1,const string& s2)->bool{
+            string pre1 = s1.substr(0,2);
+            string pre2 = s2.substr(0,2);
+            int suf1 = stoi(s1.substr(2,4));
+            int suf2 = stoi(s2.substr(2,4));
+            if(pre1 == pre2){
+                return suf1 < suf2;
+            }
+            return pre1 < pre2;
+        });
+        for(int i = 0;i < v.size();i++){
+            if(i != 0)
+                cout<< ",";
+            cout<<v[i];
+        }
+    }
+}
+
+void simplify_line(){
+    //2 8 3 7 3 6 3 5 4 4 5 3 6 2 7 3 8 4 7 5
+    string line;
+    while(getline(cin,line)){
+        stringstream ss(line);
+        vector<int> v;
+        string s_num;
+        while(getline(ss,s_num,' ')){
+            v.push_back(stoi(s_num));
+        }
+        vector<vector<int>> dirs{{-1,-1},{-1,0},{-1,1},{0,1},{0,-1},{1,-1},{1,0},{1,1}};
+        vector<pair<int,int>> trace;
+        for(int i = 0;i < v.size();i +=2){
+            trace.push_back({v[i],v[i + 1]});
+        }
+        set<int> del_index;
+        for(int i = 1;i < trace.size() - 1;i++){
+            int diff_x1 = trace[i].first - trace[i - 1].first;
+            int diff_y1 = trace[i].second - trace[i - 1].second;
+
+            int diff_x2 = trace[i + 1].first - trace[i].first;
+            int diff_y2 = trace[i + 1].second - trace[i].second;
+            if(diff_x1 == diff_x2 && diff_y1 == diff_y2)
+                del_index.insert(i);
+        }
+        vector<pair<int,int>> res;
+        for(int i = 0;i < trace.size();i++){
+            if(del_index.find(i) == del_index.end()){
+                res.push_back(trace[i]);
+            }
+        }
+        for(int i = 0;i < res.size();i++){
+            if(i > 0)
+                cout<< " ";
+            std::cout<< res[i].first << " " << res[i].second;
+        }
+    }
+}
+
+
+bool canfinish_project_arrange(vector<int>& v,int l,int target_days,int workers){
+    int idx = l - 1;
+    int max_days = 0;
+    while(workers > 0){
+        int cur_days = 0;
+        while(idx >= 0){
+            if(cur_days + v[idx] > target_days){
+                break;
+            }else{
+                cur_days += v[idx];
+                idx--;
+            }
+        }
+        workers--;
+    }
+    if(idx < 0)
+        return true;
+    return false;
+}
+
+void project_arrange(){
+//    6 2 7 7 9 3 2 1 3 11 4
+//    2
+    string line;
+    while(getline(cin,line)){
+        stringstream ss(line);
+        string s;
+        vector<int> v;
+        int sum_days = 0;
+        while(getline(ss, s,' ')){
+            int days = stoi(s);
+            v.push_back(days);
+            sum_days += days;
+        }
+        sort(v.begin(),v.end());
+        int l = v.size();
+        int workers = 0;
+        cin >> workers;
+
+        int high = sum_days;
+        int low = v[l - 1];
+        int res = high;
+        while(low < high){
+            int mid = (low+high)/2;
+            bool ret = canfinish_project_arrange(v,l,mid,workers);
+            if(ret){
+                high = mid - 1;
+                res = mid;
+            }else{
+                low = mid + 1;
+            }
+            //假设 mid天完成所有任务
+        }
+        std::cout<<res<<endl;
+    }
+}
+
+void gpu_work(){
+    //3
+    //5
+    //1 2 3 4 5
+    int cores = 0;
+    while(cin >> cores){
+        int n = 0;
+        cin >> n;
+        vector<int> v(n);
+        for(int i = 0;i < n;i++){
+            cin >> v[i];
+        }
+        int over_cnt = 0;
+        for(int i = 0;i < n;i++){
+            if(v[i] >= cores){
+                over_cnt += v[i] - cores;
+            }else{
+                over_cnt -= cores - v[i];
+                if(over_cnt < 0)
+                    over_cnt = 0;
+            }
+        }
+        int res = n + over_cnt / cores;
+        if(over_cnt % cores != 0)
+            res++;
+        std::cout<<res<<endl;
+    }
+}
+
+void count_log(){
+    //5
+    ///huawei/computing/no/one
+    ///huawei/computing
+    ///huawei
+    ///huawei/cloud/no/one
+    ///huawei/wireless/no/one
+    //2 computing
+
+    int n;
+    while(cin >>n){
+        vector<unordered_map<string,int>> v(4);
+        for(int i = 0;i < n;i++){
+            string s;
+            cin >> s;
+            int l = s.size();
+            string tmp;
+            int level = 0;
+            for(int i = 0;i < l;i++){
+                if(s[i] == '/'){
+                    if(tmp.length() > 0){
+                        v[level][tmp]++;
+                        level++;
+                    }
+                    tmp.clear();
+                }else{
+                    tmp.push_back(s[i]);
+                }
+            }
+            if(tmp.length() > 0){
+                v[level][tmp]++;
+            }
+        }
+        cin.ignore();
+        int level;
+        string key;
+        cin >> level >> key;
+        if(v[level - 1].find(key) == v[level - 1].end()){
+            cout<< "0" << endl;
+        }else{
+            cout<< v[level - 1][key] << endl;
+        }
+    }
+}
+
+std::function<bool(const pair<int,int>& p1,const pair<int,int>& p2)> my_cmp = [](const pair<int,int>& p1,const pair<int,int>& p2)->bool{
+    if(p1.first == p2.first)
+        return p1.second > p2.second;
+    return p1.first < p2.first;
+};
+
+void printer(){
+//9,3,5
+    string line;
+    while(getline(cin,line)){
+        stringstream ss(line);
+        int idx = 0;
+        string val;
+        //unordered_map<int,int> idx_val;
+
+        priority_queue<pair<int,int>,vector<pair<int,int>>, decltype(my_cmp)> q_val(my_cmp);//大顶堆
+        deque<pair<int,int>> q;
+        while(getline(ss,val,',')){
+            //idx_val[idx] = stoi(val);
+            int i = stoi(val);
+            pair<int,int> p = {i,idx};
+            q_val.push(p);
+            q.push_back({i,idx});
+            idx++;
+        }
+        vector<int> res(idx);
+        int sequence_num = 0;
+        while(!q.empty()){
+            if(q_val.top().first > q.front().first){
+                auto tmp = q.front();
+                q.pop_front();
+                q.push_back(tmp);
+            }else{
+                res[q.front().second] = sequence_num;
+                q_val.pop();
+                q.pop_front();
+                sequence_num++;
+            }
+        }
+        for(int i = 0;i < idx;i++){
+            if(i != 0)
+                cout<<",";
+            std::cout<< res[i];
+        }
+    }
+}
+
+void combine_shopping(vector<int>& v,int l,int idx,int cur_sum,vector<int>& res){
+    if(idx == l){
+        if(cur_sum != 0)
+            res.push_back(cur_sum);
+        return;
+    }
+    combine_shopping(v,l,idx + 1,cur_sum + v[idx],res);
+    combine_shopping(v,l,idx + 1,cur_sum,res);
+}
+
+void shopping_cost(){
+    //5 6
+    //1 1 2 3 3
+    int n,k;
+    while(cin >> n >> k){
+        vector<int> v(n);
+        for (int i = 0; i < n; ++i) {
+            cin >> v[i];
+        }
+        vector<int> res;
+        combine_shopping(v,n,0,0,res);
+        sort(res.begin(),res.end());
+        for(int i = 0;i < k;i++){
+            std::cout<<res[i]<<endl;
+        }
+
+
+        //sort(v.begin(),v.end());
+
+//        priority_queue<pair<int,int>,std::vector<pair<int,int>>,std::greater<pair<int,int>>> sum_last_idx;//小顶堆
+//        sum_last_idx.push({v[0],0});
+//        vector<int> res;
+//        while(res.size() < k){
+//            auto cur = sum_last_idx.top();
+//            sum_last_idx.pop();
+//            res.push_back(cur.first);
+//            if(cur.second < n - 1){
+//                sum_last_idx.push({cur.first - v[cur.second] + v[cur.second + 1],cur.second + 1});
+//            }
+//        }
+//        for(int i = 0;i < k;i++){
+//            std::cout<<res[i]<<endl;
+//        }
+    }
+}
+
+int dfs_cal_machine_cnt(vector<vector<int>>& v,int rows,int columns,int r,int c){
+    if(r < 0 || r >= rows || c < 0 || c >= columns){
+        return 0;
+    }
+    if(v[r][c] == 0)
+        return 0;
+    v[r][c] = 0;
+    int res = 1 + dfs_cal_machine_cnt(v,rows,columns,r + 1,c)+ dfs_cal_machine_cnt(v,rows,columns,r - 1,c)
+              + dfs_cal_machine_cnt(v,rows,columns,r,c + 1)+ dfs_cal_machine_cnt(v,rows,columns,r,c - 1);
+    return res;
+}
+
+void cal_machine_cnt(){
+    //2 2
+    //1 0
+    //1 1
+    int rows,columns;
+    while(cin >> rows >> columns){
+        vector<vector<int>> v(rows,vector<int>(columns));
+        for(int i = 0;i < rows;i++){
+            for(int j = 0;j < columns;j++){
+                cin >> v[i][j];
+            }
+        }
+        int res = 0;
+        for(int i = 0;i < rows;i++){
+            for(int j = 0;j < columns;j++){
+                res = max(res,dfs_cal_machine_cnt(v,rows,columns,i,j));
+            }
+        }
+        std::cout<< res << endl;
+    }
+}
+
+void divide_three_substring(){
+    string s;
+    while(cin >> s){
+        int l = s.length();
+        vector<int> prefix(l);
+        vector<int> suffix(l);
+        int total = 0;
+        for (int i = 0; i < l; ++i) {
+            total += s[i];
+            prefix[i] = s[i];
+            if(i > 0)
+                prefix[i] += prefix[i - 1];
+        }
+        for(int i = l - 1;i >= 0;i--){
+            suffix[i] = s[i];
+            if(i < l - 1)
+                suffix[i] += suffix[i + 1];
+        }
+        int left = 1;
+        int right = l - 2;
+        pair<int,int> res;
+        bool find = false;
+        while(left < right){
+            int left_sum = prefix[left - 1];
+            int right_sum = suffix[right + 1];
+            int rest_sum = total - left_sum - right_sum - s[left] - s[right];
+            if(left_sum == right_sum && left_sum == rest_sum){
+                res.first = left;
+                res.second = right;
+                find = true;
+                break;
+            }
+            if(left_sum < right_sum)
+                left++;
+            else
+                right--;
+        }
+        if(find)
+            std::cout<< res.first <<"," << res.second<<endl;
+        else{
+            std::cout<<"0,0" <<endl;
+        }
+    }
+}
+
+void increase_string(){
+    string s;
+    while(cin >> s){
+        int l = s.length();
+        vector<int> prefix_a_cnt(l);
+        vector<int> suffix_a_cnt(l);
+        for(int i = 0;i < l;i++){
+            if(s[i] == 'A'){
+                prefix_a_cnt[i] = 1;
+            }
+            if(i > 0){
+                prefix_a_cnt[i] += prefix_a_cnt[i - 1];
+            }
+        }
+        for(int i = l - 1;i >= 0;i--){
+            if(s[i] == 'A'){
+                suffix_a_cnt[i] = 1;
+            }
+            if(i < l - 1){
+                suffix_a_cnt[i] += suffix_a_cnt[i + 1];
+            }
+        }
+        int res = l - prefix_a_cnt[l - 1];
+        for(int i = 1;i < l;i++){
+            //i的左边变A，包括i的右边变B,修改的个数
+            int change_cnt1 = i - prefix_a_cnt[i - 1];
+            int change_cnt2 = l - i - suffix_a_cnt[i];
+            int cnt =  change_cnt1 + change_cnt2;
+            res = min(res,cnt);
+        }
+        std::cout<<res<<endl;
+    }
+}
+
+void unzip(){
+    //{A3B1{C}3}3
+    string s;
+    while(getline(cin,s)){
+        int l = s.size();
+        int cnt = 1;
+        int pre_num = 0;
+        stack<string> st;
+        int idx = 0;
+        while(idx < l){
+            if(s[idx] == '{'){//开始
+                st.push("{");
+                idx++;
+            }else if(isalpha(s[idx])){//字符
+                string tmp{s[idx]};
+                st.push(tmp);
+                idx++;
+            }else if(s[idx] == '}'){ //‘{’之后的全部拼接起来，再压栈
+                string s2;
+                while(st.top() != "{"){
+                    s2 = st.top() + s2;
+                    st.pop();
+                }
+                st.pop();
+                st.push(s2);
+                idx++;
+            }else if(isdigit(s[idx])){
+                int j = idx + 1;
+                int num = s[idx] - '0';
+                while(j < l && isdigit(s[j])){
+                    num *= 10 + (s[j] - '0');
+                    j++;
+                }
+                string old = st.top();
+                st.pop();
+                string new_s;
+                for(int k = 0;k < num;k++){
+                    new_s += old;
+                }
+                st.push(new_s);
+                idx = j;
+            }
+        }
+        string res;
+        while (!st.empty()){
+            res = st.top() + res;
+            st.pop();
+        }
+        std::cout<<res<<endl;
+    }
+}
+
+void bit_cmp(){
+//4
+//4 3 5 2
+    int n;
+    while(cin >> n){
+        vector<int> v(n);
+        for(int i = 0;i < n;i++){
+            cin >> v[i];
+        }
+        //X,小于等于X/2的都满足
+        int res = 0;
+        for(int i = 0;i < n;i++){
+            for(int j = i+ 1;j < n;j++){
+                if(i == j)
+                    continue;
+                if((v[i] ^ v[j]) > (v[i] & v[j]))
+                    res++;
+            }
+        }
+        std::cout << res << endl;
+    }
+}
+
+void dfs_build_array(vector<int>& v,int idx,int cur_sum,int target,bool can_choose_outside,int& res){
+    if(cur_sum == target){
+        res++;
+        return;
+    }
+    int diff = target - cur_sum;
+    if(diff < v[0]){
+        res++;
+        return;
+    }
+    if(idx >= v.size())
+        return;
+    for(int i = 0;i * v[idx] + cur_sum <= target;i++){
+        dfs_build_array(v,idx+1,cur_sum + i * v[idx],target,can_choose_outside,res);
+    }
+}
+
+void build_array(){
+    //给你一个整数M和数组N，N中的元素为连续整数，要求根据N中的元素组装成新的数组R，组装规则：
+    //
+    //R中元素总和加起来等于M。
+    //R中的元素可以从N中重复选取。
+    //R中的元素最多只能有1个不在N中，且比N中的数字都要小（不能为负数）。
+    string input;
+    while(getline(cin,input)){
+        stringstream ss(input);
+        string s_num;
+        vector<int> v;
+        while(ss >> s_num){
+            v.push_back(stoi(s_num));
+        }
+        sort(v.begin(),v.end());
+        int target;
+        cin >> target;
+        int res;
+        dfs_build_array(v,0,0,target,true,res);
+        std::cout<<res<<endl;
+    }
+}
+
+void min_number(){
+//21,30,62,5,31
+    string input;
+    while (getline(cin,input)){
+        stringstream ss(input);
+        string s;
+        vector<string> v;
+        while(getline(ss , s,',')){
+            v.push_back(s);
+        }
+        int l = v.size();
+        if(l < 3){
+            string res;
+            sort(v.begin(),v.end());
+            for(int i = 0;i < v.size();i++){
+                res += v[i];
+            }
+            std::cout<< res<<endl;
+            continue;
+        }
+        sort(v.begin(),v.end(),[](const string& s1,const string& s2)->bool{
+            int l1 = s1.size();
+            int l2 = s2.size();
+            if(l1 == l2){
+                return s1 < s2;
+            }
+            return l1 < l2;
+        });
+        vector<string> v2;
+        for(int i = 0;i < 3;i++){
+            v2.push_back(v[i]);
+        }
+        sort(v2.begin(),v2.end(),[](const string& s1,const string& s2)->bool{
+            return s1 < s2;
+        });
+        string res = v2[0] + v2[1] + v2[2];
+        std::cout<< res <<endl;
+    }
+}
+
+void sort_string(){
+    //01 02
+    string input;
+    while(getline(cin,input)){
+        stringstream ss(input);
+        string word;
+        vector<string> v;
+        while (ss >> word){
+            v.push_back(word);
+        }
+        int l = v.size();
+        int zero_cnt;
+        for(int i = 0;i < l;i++){
+            if(v[i][0] == '0'){
+                zero_cnt++;
+            }else{
+                break;
+            }
+        }
+        if(zero_cnt == l){
+            sort(v.begin(),v.end());
+            string res;
+            for(int i = 0;i < l;i++){
+                res += v[i];
+            }
+            int idx = 0;
+            int total_len = res.size();
+            while(idx < total_len){
+                if(res[idx] != '0'){
+                    break;
+                }
+                idx++;
+            }
+            if(idx == total_len)
+                std::cout<<"0"<<endl;
+            else{
+                std::cout<<res.substr(idx,total_len - idx);
+            }
+        }else{
+            //
+            vector<string> v_zero;
+            for(int i = 0;i < v.size();i++){
+                if(v[i][0] == '0'){
+                    v_zero.push_back(v[i]);
+                    v.erase(v.begin() + i);
+                }
+            }
+            sort(v.begin(),v.end());
+            sort(v_zero.begin(),v_zero.end());
+            string res;
+            res += v[0];
+            for(int i = 0;i <v_zero.size();i++){
+                res += v_zero[i];
+            }
+            for(int i = 1;i < v.size();i++){
+                res += v[i];
+            }
+            std::cout<<res << endl;
+        }
+    }
+}
+
+void dfs_hardware_price(vector<int>& v,int idx,int money,vector<int>& choose,vector<vector<int>>& res){
+    if(money < 0)
+        return;
+    if(idx == v.size()){
+        if(money != 0)
+            return;
+        if(choose.size() > 0){
+            res.push_back(choose);
+        }
+        return;
+    }
+    //choose current
+    for(int i = 0;(i * v[idx]) <= money;i++){
+        for(int j = 0;j < i;j ++){
+            choose.push_back(v[idx]);
+        }
+        dfs_hardware_price(v,idx + 1,money - i * v[idx],choose,res);
+        for(int j = 0;j < i;j ++){
+            choose.pop_back();
+        }
+    }
+}
+
+void hardware_price(){
+    //500
+    //[100,200,300,500]
+    int money;
+    while(cin >> money){
+        cin.ignore();
+        string line;
+        getline(cin,line);
+        int l = line.length();
+        string tmp;
+        vector<int> v;
+        for(int i = 0;i < l;i++){
+            if(isdigit(line[i])){
+                tmp.push_back(line[i]);
+            }
+            if(line[i] == ','){
+                v.push_back(stoi(tmp));
+                tmp.clear();
+            }
+        }
+        if(tmp.length() > 0){
+            v.push_back(stoi(tmp));
+        }
+        std::vector<int> choose;
+        std::vector<std::vector<int>> res;
+        dfs_hardware_price(v,0,money,choose,res);
+        std::cout<<"[";
+        for(int i = 0;i < res.size();i++){
+            std::cout<<"[";
+            for(int j = 0;j < res[i].size();j++){
+                if(j != 0)
+                    cout<<",";
+                cout<<res[i][j];
+            }
+            std::cout<<"]";
+            if(i != res.size() - 1)
+                cout<<",";
+        }
+        std::cout<<"]";
+    }
+}
+
+int cal_distance(vector<pair<int,int>>& v,int pos){
+    int l = v.size();
+    int sum = 0;
+    for(int i = 0;i < l;i++){
+        if(v[i].second < pos ){
+            sum += pos - v[i].second;
+        }
+        if(v[i].first > pos){
+            sum += v[i].first - pos;
+        }
+    }
+    return sum;
+}
+
+void mid_position(){
+    int n = 0;
+    while(cin >> n){
+        vector<pair<int,int>> v;
+        for(int i = 0;i < n;i++){
+            int left = 0;
+            int right = 0;
+            cin >> left >> right;
+            v.push_back({left,right});
+        }
+        sort(v.begin(),v.end(),[](const pair<int,int>& p1,const pair<int,int>& p2){
+            return p1.first < p2.first;
+        });
+        int left = v[0].first;
+        int right = v[n - 1].second;
+        int max_val = (1 << 31) - 1;
+        while(left < right){
+            int mid = (left + right)/2;
+            int val1 = cal_distance(v,mid);
+            int val2 = cal_distance(v,mid + 1);
+            max_val = min(val1,val2);
+            if(val1 <= val2){
+                right = mid;
+            }else{
+                left = mid + 1;
+            }
+        }
+        std::cout<<max_val<<endl;
+    }
+}
+
+void maxlen_sequence(){
+    //10
+    //8 8 9 1 9 6 3 9 1 0
+    int n = 0;
+    while(cin >> n){
+        vector<int> v(n);
+        for(int i = 0;i < n;i++){
+            cin >> v[i];
+        }
+        vector<int> prefix(n + 1);
+        for(int i = 0;i < n;i++){
+            prefix[i + 1] = prefix[i] + v[i];
+        }
+        unordered_map<int,vector<pair<int,int>>> sum_idx;
+        unordered_map<int,int> sum_cnt;
+        for(int right = 1;right < n;right++){
+            for(int left = right;left >= 0;left--){
+                int sum = prefix[right+1] - prefix[left];
+                sum_idx[sum].push_back({left,right});
+            }
+        }
+        int res = 0;
+        for(auto it : sum_idx){
+//            std::cout<<it.first<<" "<<it.second<<endl;
+//            res = max(res,it.second);
+            vector<pair<int,int>> tmp = it.second;
+            sort(tmp.begin(),tmp.end(),[](const pair<int,int>&p1,const pair<int,int>& p2){
+                return p1.second < p2.second;
+            });
+            int last_end = -1;
+            int cnt = 0;
+            for(int i = 0;i < tmp.size();i++){
+                if(tmp[i].first > last_end){
+                    cnt++;
+                    last_end = tmp[i].second;
+                }
+            }
+            res = max(res,cnt);
+            //merge index
+        }
+        std::cout<<res<<endl;
+    }
+}
+
+int dfs_test_tringle(vector<int>& v,int l,vector<bool>& used,int cur_sum){
+    int res = cur_sum;
+    for(int i = 0;i < l;i++){
+        if(used[i])
+            continue;
+        for(int j = 0;j < l;j++){
+            if(used[j])
+                continue;
+            for(int k = 0;k < l;k++){
+                if(used[k])
+                    continue;
+                if((v[i] * v[i] + v[j] * v[j]) == v[k] * v[k]){
+                    used[i] = true;
+                    used[j] = true;
+                    used[k] = true;
+                    res = max(res,dfs_test_tringle(v,l,used,cur_sum + 1));
+                    used[i] = false;
+                    used[j] = false;
+                    used[k] = false;
+                }
+            }
+        }
+    }
+    return res;
+}
+
+void test_tringle(){
+    //1
+    //7 3 4 5 6 5 12 13
+    int lines = 0;
+    while (cin >> lines){
+        vector<vector<int>> v(lines);
+        int idx = 0;
+        while(idx < lines){
+            int n = 0;
+            cin >> n;
+            v[idx].resize(n);
+            for(int i = 0;i < n;i++){
+                cin >> v[idx][i];
+            }
+            sort(v[idx].begin(),v[idx].end());
+            idx++;
+        }
+        vector<int> res(lines);
+        for(int i = 0;i < lines;i++){
+            vector<bool> used(v[i].size());
+            res[i] = dfs_test_tringle(v[i],v[i].size(),used,0);
+        }
+        for(int i = 0;i < lines;i++){
+            std::cout<< res[i]<<endl;
+        }
+    }
+}
+
 void dfs_game_match(vector<int>& v,int l,int idx,int diff_limit,vector<int>& choose1,vector<int>& choose2,int& max_team,int& total_diff){
     if(idx == l){
         if(choose1.size() != choose2.size())
